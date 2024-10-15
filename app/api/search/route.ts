@@ -28,7 +28,7 @@ export const GET = async (req: NextRequest) => {
             ef.Extra_Baggage_Cost AS extra_baggage_cost
           FROM Flight f
           JOIN EconomyFlight ef ON f.id = ef.flight_id
-          WHERE f.Destination = $1 AND ef.Flight_Price <= $2;
+          WHERE LOWER(f.Destination) = LOWER($1) AND ef.Flight_Price <= $2;
         `;
         queryParams = [destination, price];
       } else if (flightClass === 'business') {
@@ -45,7 +45,7 @@ export const GET = async (req: NextRequest) => {
             bf.lounge_Access AS lounge_access
           FROM Flight f
           JOIN BusinessFlight bf ON f.id = bf.flight_id
-          WHERE f.Destination = $1 AND bf.Flight_Price <= $2;
+         WHERE LOWER(f.Destination) = LOWER($1) AND bf.Flight_Price <= $2;
         `;
         queryParams = [destination, price];
       } else {
