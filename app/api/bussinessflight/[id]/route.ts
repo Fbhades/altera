@@ -20,7 +20,7 @@ export const GET = async (req: NextRequest, context: any) => {
           bf.lounge_Access AS business_lounge_access
         FROM Flight f
         JOIN BusinessFlight bf ON f.id = bf.flight_id
-        WHERE bf.id = $1;
+        WHERE bf.flight_id = $1;
       `;
       
       const flightResult = await client.query(flightQuery, [id]);
@@ -33,7 +33,7 @@ export const GET = async (req: NextRequest, context: any) => {
         WHERE id IN (
           SELECT meal_option_id 
           FROM businessflightmealoption 
-          WHERE business_flight_id = $1
+          WHERE flight_id = $1
         );
       `;
       

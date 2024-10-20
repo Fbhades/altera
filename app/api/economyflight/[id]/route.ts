@@ -20,7 +20,7 @@ export const GET = async (req: NextRequest, context: any) => {
           ef.Extra_Baggage_Cost AS economy_extra_baggage_cost
         FROM Flight f
         JOIN EconomyFlight ef ON f.id = ef.flight_id
-        WHERE ef.id = $1;
+        WHERE ef.flight_id = $1;
       `;
       
       const flightResult = await client.query(flightQuery, [id]);
@@ -33,7 +33,7 @@ export const GET = async (req: NextRequest, context: any) => {
         WHERE id IN (
           SELECT meal_option_id 
           FROM economyflightmealoption 
-          WHERE economy_flight_id = $1
+          WHERE flight_id = $1
         );
       `;
       

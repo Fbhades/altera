@@ -27,7 +27,7 @@ export const GET = async (req: NextRequest) => {
             ef.Baggage_Capacity AS baggage_capacity,
             ef.Extra_Baggage_Cost AS extra_baggage_cost
           FROM Flight f
-          JOIN EconomyFlight ef ON f.id = ef.flight_id
+          JOIN EconomyFlight ef ON f.flight_id = ef.flight_id
           WHERE LOWER(f.Destination) = LOWER($1) AND ef.Flight_Price <= $2;
         `;
         queryParams = [destination, price];
