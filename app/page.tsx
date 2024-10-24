@@ -42,7 +42,6 @@ export default function Home() {
 
   return (
     <div className="App">
-      <Header />
       <Hero />
       <PopularDestinations />
       <Footer />
