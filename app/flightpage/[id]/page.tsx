@@ -6,11 +6,11 @@ import { useState, useEffect } from "react";
 import { Flight_details_business, Flight_details_economy } from "@/app/Interface/interface";
 
 export default function Home() {
-<<<<<<< Updated upstream
   const router = useRouter();
   const { id } = useParams();
   const [flightDetails, setFlightDetails] = useState<Flight_details_economy | Flight_details_business | null>(null);
   const [flightClass, setFlightClass] = useState('economy'); // State to track selected class
+  const [selectedMeal, setSelectedMeal] = useState<number | null>(null); // State to track selected meal
 
   useEffect(() => {
     if (id) {
@@ -18,7 +18,7 @@ export default function Home() {
         try {
           const url = flightClass === 'economy' 
             ? `http://localhost:3000/api/economyflight/${id}`
-            : `http://localhost:3000/api/businessflight/${id}`;
+            : `http://localhost:3000/api/bussinessflight/${id}`;
 
           const response = await fetch(url, {
             method: 'GET',
@@ -39,9 +39,20 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
-=======
-  
->>>>>>> Stashed changes
+  // Calculate base price
+  const basePrice = flightClass === 'economy' 
+    ? parseFloat((flightDetails as Flight_details_economy).economy_price) 
+    : parseFloat((flightDetails as Flight_details_business).business_price);
+
+  // Find the selected meal
+  const selectedMealData = flightDetails.meals.find(meal => meal.id === selectedMeal);
+
+  // Calculate meal cost safely
+  const mealCost = selectedMealData ? parseFloat(selectedMealData.cost) : 0;
+
+  // Calculate total cost
+  const totalCost = basePrice + mealCost;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <main className="container mx-auto p-6">
@@ -54,25 +65,35 @@ export default function Home() {
             <p className="text-gray-700">Airline: {flightDetails.airline}</p>
             <p className="text-gray-700">Date: {new Date(flightDetails.date).toLocaleString()}</p>
             <p className="text-gray-700">Available Seats: {flightClass === 'economy' ? (flightDetails as Flight_details_economy).economy_available_seats : (flightDetails as Flight_details_business).business_available_seats}</p>
-            <p className="text-gray-700">Price: {flightClass === 'economy' ? (flightDetails as Flight_details_economy).economy_price : (flightDetails as Flight_details_business).business_price}</p>
+            <p className="text-gray-700">Price: ${basePrice.toFixed(2)}</p>
             <p className="text-gray-700">Baggage Capacity: {flightClass === 'economy' ? (flightDetails as Flight_details_economy).economy_baggage_capacity : (flightDetails as Flight_details_business).business_baggage_allowance}</p>
             {flightClass === 'economy' && (
-              <p className="text-gray-700">Extra Baggage Cost: {(flightDetails as Flight_details_economy).economy_extra_baggage_cost}</p>
+              <p className="text-gray-700">Extra Baggage Cost: ${(flightDetails as Flight_details_economy).economy_extra_baggage_cost}</p>
             )}
             {flightClass === 'business' && (
               <p className="text-gray-700">Lounge Access: {(flightDetails as Flight_details_business).business_lounge_access ? 'Yes' : 'No'}</p>
             )}
           </div>
+
+          {/* Meals Section */}
           <div className="mb-8">
             <h3 className="text-2xl font-semibold mb-4 text-gray-700">Meals</h3>
-            <ul className="list-disc list-inside">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {flightDetails.meals.map(meal => (
-                <li key={meal.id} className="text-gray-700">
-                  {meal.mealType}: {meal.description} - ${meal.cost}
-                </li>
+                <button 
+                  key={meal.id} 
+                  className={`border rounded-lg p-4 text-left transition duration-200 ease-in-out ${selectedMeal === meal.id ? 'bg-yellow-400 text-gray-900 font-bold' : 'bg-white text-gray-700 hover:bg-yellow-100'}`} 
+                  onClick={() => setSelectedMeal(meal.id)}
+                >
+                  <div className="font-semibold">{meal.mealType}</div>
+                  <div>{meal.description}</div>
+                  <div className="mt-2 text-sm">${meal.cost}</div>
+                </button>
               ))}
-            </ul>
+            </div>
           </div>
+
+          {/* Select Flight Class */}
           <div className="mb-8">
             <h3 className="text-2xl font-semibold mb-4 text-gray-700">Select Flight Class</h3>
             <div className="flex space-x-4">
@@ -90,6 +111,13 @@ export default function Home() {
               </button>
             </div>
           </div>
+
+          {/* Total Cost */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-700">Total Cost: ${totalCost.toFixed(2)}</h3>
+          </div>
+
+          {/* Booking Button */}
           <div className="text-center">
             <a href="#" className="bg-yellow-400 text-gray-900 py-3 px-6 rounded-lg font-semibold hover:bg-yellow-500 transition">BOOK NOW</a>
           </div>
