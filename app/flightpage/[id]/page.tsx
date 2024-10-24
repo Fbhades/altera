@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Flight_details_business, Flight_details_economy } from "@/app/Interface/interface";
 
 export default function Home() {
+<<<<<<< Updated upstream
   const router = useRouter();
   const { id } = useParams();
   const [flightDetails, setFlightDetails] = useState<Flight_details_economy | Flight_details_business | null>(null);
@@ -38,6 +39,9 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
+=======
+  
+>>>>>>> Stashed changes
   return (
     <div className="min-h-screen bg-gray-100">
       <main className="container mx-auto p-6">

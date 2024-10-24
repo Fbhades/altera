@@ -1,7 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import Header from "@/app/components/Header";
 import Hero from "@/app/components/Hero";
 import PopularDestinations from "@/app/components/PopularDestinations";
 import Footer from "@/app/components/Footer";
