@@ -1,7 +1,7 @@
 
 
 export interface searchFlight {
-    id: number;
+    flight_id: number;
     destination: string;
     depart: string; // Assuming time format
     airline: string;

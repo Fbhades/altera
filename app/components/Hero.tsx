@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { searchFlight } from '../Interface/interface';
 import Link from "next/link"
-import FlightOptions from './FlightPage';
-import FlightPage from './FlightPage';
+import { useRouter } from "next/navigation";
+
 
 const Hero = () => {
   const [destination, setDestination] = useState('');
@@ -11,6 +11,7 @@ const Hero = () => {
   const [flightClass, setFlightClass] = useState('economy');
   const [flights, setFlights] = useState<searchFlight[]>([]);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +67,7 @@ const Hero = () => {
         {flights.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mx-4">
             {flights.map((flight) => (
-              <article key={flight.id} className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm">
+              <article key={flight.flight_id} className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm">
                 <img
                   alt=""
                   src= "https://assets.editorial.aetnd.com/uploads/2019/03/topic-london-gettyimages-760251843-feature.jpg?width=1920&height=960&crop=1920%3A960%2Csmart&quality=75&auto=webp" // Use a default image if none is provided"
@@ -85,9 +86,9 @@ const Hero = () => {
                   </p>
 
                   <span className="group mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600">
-                  <Link href={`/flightpage/${flight.id}`}>
+                  <button onClick={() => router.push('/flightpage/' + flight.flight_id)}>
                     Find out more
-                  </Link>
+                  </button>
                     <span aria-hidden="true" className="block transition-all group-hover:ms-0.5 rtl:rotate-180">
                       &rarr;
                     </span>
