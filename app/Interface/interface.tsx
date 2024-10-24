@@ -20,6 +20,41 @@ export interface searchFlight {
     airline: string;
     date: string; // Assuming date format
   }
+
+  export interface Meal {
+    id: number;
+    snack: boolean;
+    mealType: string;
+    description: string;
+    cost: number;
+  }
+  
+  export interface Flight_details_economy {
+    flight_id: number;
+    destination: string;
+    depart: string;
+    airline: string;
+    date: string;
+    economy_available_seats: number;
+    economy_price: string;
+    economy_baggage_capacity: number;
+    economy_extra_baggage_cost: string;
+    meals: Meal[];
+  }
+
+  export interface Flight_details_business {
+    flight_id: number;
+    destination: string;
+    depart: string;
+    airline: string;
+    date: string;
+    business_available_seats: number;
+    business_price: string;
+    business_baggage_allowance: number;
+    business_lounge_access: boolean;
+    meals: Meal[];
+  }
+
 export interface EconomyFlight {
     id: number;
     baggageCapacity: number;
