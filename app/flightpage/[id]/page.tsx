@@ -11,37 +11,33 @@ export default function Home() {
 
           {/* Class Selection */}
           <section className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4">Class Selection</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <h3 className="text-gray-700 text-2xl font-semibold mb-4">Class Selection</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Economy</h4>
+                <h4 className="font-bold text-gray-700">Economy</h4>
                 <p className="text-gray-600">Affordable and comfortable experience.</p>
               </div>
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Business Class</h4>
+                <h4 className="font-bold text-gray-700">Business Class</h4>
                 <p className="text-gray-600">Extra space and premium service.</p>
-              </div>
-              <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">First Class</h4>
-                <p className="text-gray-600">Ultimate luxury and gourmet meals.</p>
               </div>
             </div>
           </section>
 
           {/* Seat Preferences */}
           <section className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4">Seat Preferences</h3>
+            <h3 className="text-gray-700 text-2xl font-semibold mb-4">Seat Preferences</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Window Seat</h4>
+                <h4 className="font-bold text-gray-700">Window Seat</h4>
                 <p className="text-gray-600">Enjoy scenic views during your flight.</p>
               </div>
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Aisle Seat</h4>
+                <h4 className="font-bold text-gray-700">Aisle Seat</h4>
                 <p className="text-gray-600">Easy access to move around during the flight.</p>
               </div>
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Extra Legroom</h4>
+                <h4 className=" text-gray-700 font-bold">Extra Legroom</h4>
                 <p className="text-gray-600">Relax with extra space for your legs.</p>
               </div>
             </div>
@@ -49,41 +45,26 @@ export default function Home() {
 
           {/* Meal Preferences */}
           <section className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4">Meal Preferences</h3>
+            <h3 className="text-2xl text-gray-700 font-semibold mb-4">Meal Preferences</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Standard</h4>
+                <h4 className="font-bold text-gray-700">Standard</h4>
                 <p className="text-gray-600">Enjoy traditional Egyptian-inspired meals.</p>
               </div>
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Vegetarian</h4>
+                <h4 className="font-bold text-gray-700">Vegetarian</h4>
                 <p className="text-gray-600">Fresh, healthy plant-based meals.</p>
               </div>
               <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Vegan</h4>
+                <h4 className="font-bold text-gray-700">Vegan</h4>
                 <p className="text-gray-600">Delicious vegan options prepared just for you.</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Extra Options */}
-          <section className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4">Additional Options</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">In-flight Wi-Fi</h4>
-                <p className="text-gray-600">Stay connected throughout your flight.</p>
-              </div>
-              <div className="p-4 border rounded-lg hover:bg-gray-50">
-                <h4 className="font-bold">Priority Boarding</h4>
-                <p className="text-gray-600">Get on board first and settle in early.</p>
               </div>
             </div>
           </section>
 
           {/* Destination Details */}
           <section className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4">Destination Details - Luxor, Egypt</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-gray-700">Destination Details - Luxor, Egypt</h3>
             <p className="text-gray-700">
               Luxor is home to the ancient treasures of Egypt, including the famous Luxor Temple, the Valley of the Kings, and the sprawling Karnak Temple Complex. Experience breathtaking views of the Nile or take a sunset cruise to end your day in Luxor with unforgettable memories.
             </p>

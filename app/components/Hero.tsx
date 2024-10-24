@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { searchFlight } from '../Interface/interface';
 import Link from "next/link"
-import FlightOptions from './FlightPage';
-import FlightPage from './FlightPage';
 
 const Hero = () => {
   const [destination, setDestination] = useState('');
