@@ -1,6 +1,9 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { searchFlight } from '../Interface/interface';
+import Link from "next/link"
+import FlightOptions from './FlightPage';
+import FlightPage from './FlightPage';
 
 const Hero = () => {
   const [destination, setDestination] = useState('');
@@ -81,12 +84,14 @@ const Hero = () => {
                     Price: {flight.flight_price}$
                   </p>
 
-                  <a href="#" className="group mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600">
+                  <span className="group mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600">
+                  <Link href={`/flightpage/${flight.id}`}>
                     Find out more
+                  </Link>
                     <span aria-hidden="true" className="block transition-all group-hover:ms-0.5 rtl:rotate-180">
                       &rarr;
                     </span>
-                  </a>
+                  </span>
                 </div>
               </article>
             ))}
