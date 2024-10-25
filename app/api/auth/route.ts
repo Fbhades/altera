@@ -64,5 +64,3 @@ export const GET = async (req: NextRequest) => {
       return NextResponse.json({ message: 'Error updating user' }, { status: 500 });
     }
   };
-  
-  

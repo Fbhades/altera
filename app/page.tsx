@@ -37,6 +37,7 @@ export default function Home() {
     if (userId) {
       handleCreateUser();
     }
+    console.log(userId);
   }, [user]);
 
   return (
