@@ -130,19 +130,19 @@ export default function AdminPage() {
                 <table className="min-w-full bg-white">
                   <thead>
                     <tr>
-                      <th className="py-2 px-4 border-b">User ID</th>
-                      <th className="py-2 px-4 border-b">Flight ID</th>
-                      <th className="py-2 px-4 border-b">Meal ID</th>
-                      <th className="py-2 px-4 border-b">Price</th>
+                      <th className="py-2 px-4 border-b text-gray-700">User ID</th>
+                      <th className="py-2 px-4 border-b text-gray-700">Flight ID</th>
+                      <th className="py-2 px-4 border-b text-gray-700">Meal ID</th>
+                      <th className="py-2 px-4 border-b text-gray-700">Price</th>
                     </tr>
                   </thead>
                   <tbody>
                     {searchResults.map((reservation, index) => (
                       <tr key={index}>
-                        <td className="py-2 px-4 border-b">{reservation.userID}</td>
-                        <td className="py-2 px-4 border-b">{reservation.flightID}</td>
-                        <td className="py-2 px-4 border-b">{reservation.mealID}</td>
-                        <td className="py-2 px-4 border-b">${reservation.price.toFixed(2)}</td>
+                        <td className="py-2 px-4 border-b text-gray-700">{reservation.userID}</td>
+                        <td className="py-2 px-4 border-b text-gray-700">{reservation.flightID}</td>
+                        <td className="py-2 px-4 border-b text-gray-700">{reservation.mealID}</td>
+                        <td className="py-2 px-4 border-b text-gray-700">${reservation.price.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -155,19 +155,19 @@ export default function AdminPage() {
             <table className="min-w-full bg-white">
               <thead>
                 <tr>
-                  <th className="py-2 px-4 border-b">User ID</th>
-                  <th className="py-2 px-4 border-b">Flight ID</th>
-                  <th className="py-2 px-4 border-b">Meal ID</th>
-                  <th className="py-2 px-4 border-b">Price</th>
+                  <th className="py-2 px-4 border-b text-gray-700">User ID</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Flight ID</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Meal ID</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Price</th>
                 </tr>
               </thead>
               <tbody>
                 {reservations.map((reservation, index) => (
                   <tr key={index}>
-                    <td className="py-2 px-4 border-b">{reservation.userID}</td>
-                    <td className="py-2 px-4 border-b">{reservation.flightID}</td>
-                    <td className="py-2 px-4 border-b">{reservation.mealID}</td>
-                    <td className="py-2 px-4 border-b">${reservation.price.toFixed(2)}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{reservation.userID}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{reservation.flightID}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{reservation.mealID}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">${reservation.price.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -255,25 +255,25 @@ export default function AdminPage() {
             <table className="min-w-full bg-white">
               <thead>
                 <tr>
-                  <th className="py-2 px-4 border-b">Flight ID</th>
-                  <th className="py-2 px-4 border-b">Destination</th>
-                  <th className="py-2 px-4 border-b">Departure Time</th>
-                  <th className="py-2 px-4 border-b">Airline</th>
-                  <th className="py-2 px-4 border-b">Date</th>
-                  <th className="py-2 px-4 border-b">Class Type</th>
-                  <th className="py-2 px-4 border-b">Actions</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Flight ID</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Destination</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Departure Time</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Airline</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Date</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Class Type</th>
+                  <th className="py-2 px-4 border-b text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {flights.map((flight, index) => (
                   <tr key={index}>
-                    <td className="py-2 px-4 border-b">{flight.id}</td>
-                    <td className="py-2 px-4 border-b">{flight.destination}</td>
-                    <td className="py-2 px-4 border-b">{flight.depart}</td>
-                    <td className="py-2 px-4 border-b">{flight.airline}</td>
-                    <td className="py-2 px-4 border-b">{new Date(flight.date).toLocaleDateString()}</td>
-                    <td className="py-2 px-4 border-b">{flight.classType}</td>
-                    <td className="py-2 px-4 border-b">
+                    <td className="py-2 px-4 border-b text-gray-700">{flight.id}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{flight.destination}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{flight.depart}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{flight.airline}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{new Date(flight.date).toLocaleDateString()}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">{flight.classType}</td>
+                    <td className="py-2 px-4 border-b text-gray-700">
                       <button
                         onClick={() => handleDeleteFlight(flight.id)}
                         className="bg-red-500 text-white py-1 px-3 rounded-lg font-semibold hover:bg-red-600 transition"

@@ -9,7 +9,7 @@ export const POST = async (req: NextRequest) => {
     try {
       const { userID, flightID, mealID, price } = await req.json();
       const query = `
-        INSERT INTO Reservation (userID, flightID, mealID, price)
+        INSERT INTO Reservation (userID, flightID, mealID, price, done)
         VALUES ($1, $2, $3, $4 , $5)
         RETURNING *;
       `;
