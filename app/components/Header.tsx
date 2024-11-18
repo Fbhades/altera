@@ -15,18 +15,18 @@ const Header = () => {
       <Image 
           src="/images/logo.png" // Path to the image in the public folder
           alt="Logo" 
-          width={250} 
-          height={150} 
+          width={300} 
+          height={200} 
         />
         <nav>
           <ul className="flex space-x-6">
-            <li>
+            {/* <li>
               <button onClick={() => router.push('/Admin')}>
                 Services
               </button>
             </li>
             <li><a href="#news" className="hover:underline">News</a></li>
-            <li><a href="#about" className="hover:underline">About Us</a></li>
+            <li><a href="#about" className="hover:underline">About Us</a></li> */}
             
             {isLoaded && isSignedIn ? (
               // Show Sign Out and profile button if user is signed in

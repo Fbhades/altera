@@ -10,14 +10,22 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^5.7.5",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@shadcn/ui": "^0.0.4",
     "altera": "file:",
     "axios": "^1.7.7",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.460.0",
     "next": "14.2.15",
     "pg": "^8.13.0",
     "react": "^18",
     "react-dom": "^18",
+    "shadcn": "^2.1.6",
     "stripe": "^17.2.1",
-    "swr": "^2.2.5"
+    "swr": "^2.2.5",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",
