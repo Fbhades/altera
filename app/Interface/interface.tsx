@@ -89,3 +89,18 @@ export interface EconomyFlight {
     businessFlightId: number;
     mealId: number;
   }
+
+  export interface reservation {
+    id:number;
+    flightId:number;
+    userId:number;
+    price:number;
+    done:boolean;
+  }
+
+  export interface user{
+    id:number;
+    name:string;
+    email:string;
+    role:boolean;
+  }
