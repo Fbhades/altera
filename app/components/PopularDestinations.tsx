@@ -27,7 +27,7 @@ const PopularDestinations = () => {
   return (
     <div className="py-12">
       <h2 className="text-4xl font-bold text-center mb-6">Explore The Most Engaging Places</h2>
-      <h3 className="text-xl text-center text-yellow-600 mb-12">Our Most Popular Destinations this season</h3>
+      <h3 className="text-xl text-center text-yellow-300 mb-12">Our Most Popular Destinations this season</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {destinations.map((dest, index) => (
           <DestinationCard key={index} name={dest.destination} image={dest.date} />
