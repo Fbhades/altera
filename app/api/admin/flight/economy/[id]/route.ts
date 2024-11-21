@@ -5,7 +5,7 @@ export const GET = async (req: NextRequest,context: any) => {
     const id = context.params.id;
     try {
       const client = await pool.connect();
-      const query = 'SELECT * FROM economy_flight where WHERE id = $1;';
+      const query = 'SELECT * FROM economyflight WHERE flight_id = $1;';
       const result = await client.query(query, [id]);
       const users = result.rows;
       await client.release();
@@ -28,9 +28,9 @@ export const GET = async (req: NextRequest,context: any) => {
   
       const client = await pool.connect();
       const query = `
-        UPDATE economy_flight
+        UPDATE economyflight
         SET baggage_capacity = $1, extra_baggage_cost = $2, available_seats = $3, flight_price = $4, flight_id = $5
-        WHERE id = $6 RETURNING *;
+        WHERE flight_id = $6 RETURNING *;
       `;
       const values = [baggageCapacity, extraBaggageCost, availableSeats, flightPrice, flightId, id];
       const result = await client.query(query, values);
@@ -56,7 +56,7 @@ export const GET = async (req: NextRequest,context: any) => {
       }
   
       const client = await pool.connect();
-      const query = 'DELETE FROM economy_flight WHERE id = $1 RETURNING *;';
+      const query = 'DELETE FROM economyflight WHERE flight_id = $1 RETURNING *;';
       const result = await client.query(query, [id]);
       await client.release();
   
