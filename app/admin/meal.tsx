@@ -14,7 +14,7 @@ const MealOptions = () => {
     useEffect(() => {
         const fetchMealOptions = async () => {
             try {
-                const response = await fetch('/api/meals'); // Adjust API endpoint as necessary
+                const response = await fetch('/api/admin/meal'); // Adjust API endpoint as necessary
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -61,7 +61,7 @@ const MealOptions = () => {
                             <li key={meal.id} className="mb-2">
                                 <strong className="text-yellow-300">Type:</strong> {meal.mealType} - 
                                 <strong className="text-yellow-300"> Description:</strong> {meal.description} - 
-                                <strong className="text-yellow-300"> Cost:</strong> ${meal.cost.toFixed(2)} - 
+                                <strong className="text-yellow-300"> Cost:</strong> ${meal.cost} - 
                                 <strong className="text-yellow-300"> Snack:</strong> {meal.snack ? 'Yes' : 'No'}
                             </li>
                         ))}

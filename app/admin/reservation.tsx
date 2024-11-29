@@ -14,7 +14,7 @@ const Reservations = () => {
     useEffect(() => {
         const fetchReservations = async () => {
             try {
-                const response = await fetch('/api/reservations'); // Adjust API endpoint as necessary
+                const response = await fetch('/api/admin/reservation'); // Adjust API endpoint as necessary
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

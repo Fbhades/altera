@@ -7,7 +7,7 @@ const Flights = () => {
     useEffect(() => {
         const fetchFlights = async () => {
             try {
-                const response = await fetch('/api/flights'); // Adjust API endpoint as necessary
+                const response = await fetch('/api/admin/flight'); // Adjust API endpoint as necessary
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
