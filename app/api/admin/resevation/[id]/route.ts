@@ -31,9 +31,9 @@ export const GET = async (req: NextRequest,context: any) => {
 export const PUT = async (req: NextRequest) => {
   try {
     const body = await req.json();
-    const { id, flightId, userId, price, done } = body;
+    const { id, flightId, userId, mealId,price, done } = body;
 
-    if (!id || !flightId || !userId || !price || done === undefined) {
+    if (!id || !flightId || !userId || !mealId||!price || done === undefined) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 

@@ -92,8 +92,9 @@ export interface EconomyFlight {
 
   export interface reservation {
     id:number;
-    flightId:number;
-    userId:number;
+    flightid:number;
+    mealid:number;
+    userid:number;
     price:number;
     done:boolean;
   }

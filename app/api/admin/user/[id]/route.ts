@@ -1,88 +1,44 @@
-import { NextResponse, NextRequest } from 'next/server';
-import pool from '@/db';
+import { NextResponse } from 'next/server';
+import { clerkClient } from '@clerk/nextjs/server';
 
-// GET: Fetch a single user by ID
-export const GET = async (req: NextRequest,context: any) => {
-  try {
-    const id = context.params.id;
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+    try {
+        const { name, email, role } = await request.json();
+        // Update user in your database here
 
+        // Update user in Clerk
+        const [firstName, ...lastNameParts] = name.split(' ');
+        const lastName = lastNameParts.join(' ');
+        const updatedUser = await clerkClient.users.updateUser(params.id, {
+            firstName,
+            lastName,
+            emailAddress: [email],
+            publicMetadata: { role: role ? 'admin' : 'user' },
+        });
 
-    if (!id) {
-      return NextResponse.json({ message: 'Missing user ID' }, { status: 400 });
+        return NextResponse.json({
+            id: updatedUser.id,
+            name,
+            email,
+            role,
+        });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        return NextResponse.json({ error: 'Error updating user' }, { status: 500 });
     }
+}
 
-    const client = await pool.connect();
-    const query = 'SELECT * FROM users WHERE id = $1;';
-    const result = await client.query(query, [id]);
-    await client.release();
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+    try {
+        // Delete user from your database here
 
-    if (result.rowCount === 0) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        // Delete user from Clerk
+        await clerkClient.users.deleteUser(params.id);
+
+        return NextResponse.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        return NextResponse.json({ error: 'Error deleting user' }, { status: 500 });
     }
+}
 
-    return NextResponse.json(result.rows[0], { status: 200 });
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    return NextResponse.json({ message: 'Error fetching user' }, { status: 500 });
-  }
-};
-
-
-
-// PUT: Update an existing user by ID
-export const PUT = async (req: NextRequest) => {
-  try {
-    const body = await req.json();
-    const { id, name, email, role } = body;
-
-    if (!id || !name || !email || role === undefined) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-    }
-
-    const client = await pool.connect();
-    const query = `
-      UPDATE users
-      SET name = $1, email = $2, role = $3
-      WHERE id = $4
-      RETURNING *;
-    `;
-    const values = [name, email, role, id];
-    const result = await client.query(query, values);
-    await client.release();
-
-    if (result.rowCount === 0) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(result.rows[0], { status: 200 });
-  } catch (error) {
-    console.error('Error updating user:', error);
-    return NextResponse.json({ message: 'Error updating user' }, { status: 500 });
-  }
-};
-
-// DELETE: Delete a user by ID
-export const DELETE = async (req: NextRequest,context: any) => {
-  try {
-    const id = context.params.id;
-
-
-    if (!id) {
-      return NextResponse.json({ message: 'Missing user ID' }, { status: 400 });
-    }
-
-    const client = await pool.connect();
-    const query = 'DELETE FROM users WHERE id = $1 RETURNING *;';
-    const result = await client.query(query, [id]);
-    await client.release();
-
-    if (result.rowCount === 0) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: 'User deleted successfully' }, { status: 200 });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    return NextResponse.json({ message: 'Error deleting user' }, { status: 500 });
-  }
-};

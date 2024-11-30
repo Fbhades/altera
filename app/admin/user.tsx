@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { user } from '../Interface/interface'; // Adjust the import path as necessary
+import { DeleteButton } from "@/components/ui/delete-button"
+import { UpdateButton } from "@/components/ui/update-button"
 
 const Users = () => {
     const [users, setUsers] = useState<user[]>([]);
@@ -9,6 +11,7 @@ const Users = () => {
         email: '',
         role: false,
     });
+    const [editingUser, setEditingUser] = useState<user | null>(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -34,18 +37,73 @@ const Users = () => {
         });
     };
 
+    const handleUpdate = (user: user) => {
+        setEditingUser(user);
+        setNewUser(user);
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            const response = await fetch(`/api/admin/user/${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            setUsers(users.filter(user => user.id !== id));
+        } catch (error) {
+            console.error('Error deleting user:', error);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission (create or update user)
-        console.log('New user submitted:', newUser);
-        
-        // Reset form after submission
+        if (editingUser) {
+            // Update existing user
+            try {
+                const response = await fetch(`/api/admin/user/${editingUser.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newUser),
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const updatedUser = await response.json();
+                setUsers(users.map(user => (user.id === updatedUser.id ? updatedUser : user)));
+            } catch (error) {
+                console.error('Error updating user:', error);
+            }
+        } else {
+            // Create new user
+            try {
+                const response = await fetch('/api/admin/user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newUser),
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const createdUser = await response.json();
+                setUsers([...users, createdUser]);
+            } catch (error) {
+                console.error('Error creating user:', error);
+            }
+        }
+
+        // Reset form and editing state after submission
         setNewUser({
             id: 0,
             name: '',
             email: '',
             role: false,
         });
+        setEditingUser(null);
     };
 
     return (
@@ -54,15 +112,29 @@ const Users = () => {
             
             <div className="mt-4">
                 {users.length > 0 ? (
-                    <ul className="list-disc pl-5">
-                        {users.map((user) => (
-                            <li key={user.id} className="mb-2">
-                                <strong className="text-yellow-300">Name:</strong> {user.name} - 
-                                <strong className="text-yellow-300"> Email:</strong> {user.email} - 
-                                <strong className="text-yellow-300"> Role:</strong> {user.role ? 'Admin' : 'User'}
-                            </li>
-                        ))}
-                    </ul>
+                    <table className="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th className="py-2">Name</th>
+                                <th className="py-2">Email</th>
+                                <th className="py-2">Role</th>
+                                <th className="py-2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map((user) => (
+                                <tr key={user.id} className="border-t">
+                                    <td className="py-2">{user.name}</td>
+                                    <td className="py-2">{user.email}</td>
+                                    <td className="py-2">{user.role ? 'Admin' : 'User'}</td>
+                                    <td className="py-2 space-x-2">
+                                        <UpdateButton onClick={() => handleUpdate(user)} />
+                                        <DeleteButton onClick={() => handleDelete(user.id)} />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 ) : (
                     <p>No users available.</p>
                 )}
@@ -104,7 +176,7 @@ const Users = () => {
                         type="submit" 
                         className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition duration-200"
                     >
-                        Add User
+                        {editingUser ? 'Update User' : 'Add User'}
                     </button>
                 </form>
             </div>
