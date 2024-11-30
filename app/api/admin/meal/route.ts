@@ -21,19 +21,19 @@ export const GET = async (req: NextRequest) => {
 export const POST = async (req: NextRequest) => {
   try {
     const body = await req.json();
-    const { snack, mealType, description, cost } = body;
+    const { snack, meal_type, description, cost } = body;
 
-    if (snack === undefined || !mealType || !description || cost === undefined) {
+    if (snack === undefined || !meal_type || !description || cost === undefined) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
     const client = await pool.connect();
     const query = `
-      INSERT INTO mealoption (snack, mealType, description, cost)
+      INSERT INTO mealoption (snack, meal_Type, description, cost)
       VALUES ($1, $2, $3, $4)
       RETURNING *;
     `;
-    const values = [snack, mealType, description, cost];
+    const values = [snack, meal_type, description, cost];
     const result = await client.query(query, values);
     await client.release();
 
