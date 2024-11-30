@@ -75,7 +75,7 @@ export interface EconomyFlight {
   export interface MealOption {
     id: number;
     snack: boolean;
-    mealType: string;
+    meal_type: string;
     description: string;
     cost: number;
   }

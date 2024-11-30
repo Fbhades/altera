@@ -8,7 +8,7 @@ const MealOptions = () => {
     const [newMealOption, setNewMealOption] = useState<MealOption>({
         id: 0,
         snack: false,
-        mealType: '',
+        meal_type: '',
         description: '',
         cost: 0,
     });
@@ -101,7 +101,7 @@ const MealOptions = () => {
         setNewMealOption({
             id: 0,
             snack: false,
-            mealType: '',
+            meal_type: '',
             description: '',
             cost: 0,
         });
@@ -127,7 +127,7 @@ const MealOptions = () => {
                         <tbody>
                             {mealOptions.map((meal) => (
                                 <tr key={meal.id}>
-                                    <td className="border px-4 py-2">{meal.mealType}</td>
+                                    <td className="border px-4 py-2">{meal.meal_type}</td>
                                     <td className="border px-4 py-2">{meal.description}</td>
                                     <td className="border px-4 py-2">${meal.cost}</td>
                                     <td className="border px-4 py-2">{meal.snack ? 'Yes' : 'No'}</td>
@@ -152,7 +152,7 @@ const MealOptions = () => {
                         type="text"
                         name="mealType"
                         placeholder="Meal Type"
-                        value={newMealOption.mealType}
+                        value={newMealOption.meal_type}
                         onChange={handleInputChange}
                         required
                         className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
