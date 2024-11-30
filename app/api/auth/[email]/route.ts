@@ -12,7 +12,7 @@ export const GET = async (req: NextRequest,context: any) => {
     const client = await pool.connect();
     try {
       const query = `
-        SELECT id AS userID
+        SELECT id AS userID, name, email, role
         FROM Users
         WHERE email = $1;
       `;

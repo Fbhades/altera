@@ -154,7 +154,7 @@ const Reservations = () => {
 
             {/* Form for adding new reservation */}
             <div className="mt-6">
-                <h3 className="text-xl font-semibold mb-2 text-yellow-300">Add New Reservation</h3>
+                <h3 className="text-xl font-semibold mb-2 text-yellow-300">Update New Reservation</h3>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
                         type="number"

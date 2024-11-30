@@ -34,7 +34,7 @@ const Hero = () => {
   }, [destination, price, flightClass]);
 
   return (
-    <div className="bg-[url(C:\Users\bejao\Desktop\Projects\altera\public\images\henning-witzel-ukvgqriuOgo-unsplash.jpg)] bg-cover bg-center text-center py-20 text-white">
+    <div className="bg-[url(/images/henning-witzel-ukvgqriuOgo-unsplash.jpg)] bg-cover bg-center text-center py-20 text-white">
       <h1 className="text-5xl mb-8">DISCOVER THE</h1>
       <h1 className="text-6xl font-bold mb-8">EXTRAORDINARY</h1>
 
