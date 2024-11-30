@@ -148,15 +148,17 @@ const MealOptions = () => {
             <div className="mt-6">
                 <h3 className="text-xl font-semibold mb-2 text-yellow-300">Add New Meal Option</h3>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="text"
-                        name="mealType"
-                        placeholder="Meal Type"
+                    <select
+                        name="meal_type"
                         value={newMealOption.meal_type}
-                        onChange={handleInputChange}
+                        onChange={(e) => setNewMealOption({ ...newMealOption, meal_type: e.target.value })}
                         required
                         className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                        <option value="">Select Meal Type</option>
+                        <option value="Main Course">Main Course</option>
+                        <option value="Snack">Snack</option>
+                    </select>
                     <textarea
                         name="description"
                         placeholder="Description"
