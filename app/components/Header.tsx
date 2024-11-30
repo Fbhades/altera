@@ -48,12 +48,14 @@ const Header = () => {
   return (
     <header className="bg-blue-900 p-4 text-white">
       <div className="container mx-auto flex justify-between items-center">
-        <Image 
-          src="/images/logo.png"
-          alt="Logo" 
-          width={300} 
-          height={200} 
-        />
+        <Link href="/">
+          <Image 
+            src="/images/logo.png"
+            alt="Logo" 
+            width={300} 
+            height={200} 
+          />
+        </Link>
         <nav>
           <ul className="flex space-x-6">
             {isSignedIn ? (

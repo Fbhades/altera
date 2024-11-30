@@ -18,32 +18,19 @@ export async function GET() {
         return NextResponse.json({ error: 'Error fetching users' }, { status: 500 });
     }
 }
-
 export async function POST(request: Request) {
-    try {
+    
         const { name, email, role } = await request.json();
-        // Create user in your database here
-
-        // Create user in Clerk
-        const [firstName, ...lastNameParts] = name.split(' ');
-        const lastName = lastNameParts.join(' ');
-        const clerkUser = await clerkClient.users.createUser({
-            firstName,
-            lastName,
-            emailAddress: [email],
-            password: Math.random().toString(36).slice(-8), // Generate a random password
-            publicMetadata: { role: role ? 'admin' : 'user' },
-        });
-
-        return NextResponse.json({
-            id: clerkUser.id,
-            name,
-            email,
-            role,
-        });
-    } catch (error) {
-        console.error('Error creating user:', error);
-        return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
-    }
+        try {
+            const client = await clerkClient()
+        
+            const user = await client.users.createUser({
+              emailAddress:[email],
+              password: 'password1234',
+            })
+            return NextResponse.json({ message: 'User created', user })
+          } catch (error) {
+            console.log(error)
+            return NextResponse.json({ error: 'Error creating user' })
+          }
 }
-
