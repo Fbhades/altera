@@ -105,3 +105,34 @@ export interface EconomyFlight {
     email:string;
     role:boolean;
   }
+
+  export interface Profile {
+    id:number;
+    username: string;
+    email: string;
+    bio: string;
+    profilePicture: string;
+    posts: number[];
+    followers: Profile[];
+    following: Profile[];
+    joinedDate: Date;
+}
+export interface Post {
+    authorPhoto: string;
+    id:number;
+    title: string;
+    content: string;
+    photos: string[];
+    author_id: number;
+    authorName: string;
+    upvotes: number;
+    downvotes: number;
+    comments: Comment[];
+    tags: string[];
+    createdAt: Date;
+}
+
+interface Comment {
+    post_id:number;
+    text: string;
+}
