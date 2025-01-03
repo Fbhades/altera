@@ -2,8 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Flight } from '../Interface/interface'; // Adjust the import path as necessary
 import { DeleteButton } from "@/components/ui/delete-button"
 import { UpdateButton } from "@/components/ui/update-button"
+import { useToast } from "@/components/ui/useToast";
+import { Toaster } from "@/components/ui/toaster";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 const Flights = () => {
+    const { toast } = useToast();
     const [flights, setFlights] = useState<Flight[]>([]);
     const [newFlight, setNewFlight] = useState<Flight>({
         id: 0,
@@ -13,6 +22,7 @@ const Flights = () => {
         date: '',
     });
     const [editingFlight, setEditingFlight] = useState<Flight | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchFlights = async () => {
@@ -32,12 +42,65 @@ const Flights = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setNewFlight({ ...newFlight, [name]: value });
+
+        // Validate the departure date
+        if (name === 'date') {
+            const selectedDate = new Date(value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate < today) {
+                toast({
+                    variant: "destructive",
+                    title: "Invalid Date",
+                    description: "Departure date cannot be earlier than today's date.",
+                });
+                return;
+            }
+        }
+
+        // Validate departure time format (HH:mm)
+        if (name === 'depart') {
+            const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+            if (!timeRegex.test(value) && value !== '') {
+                toast({
+                    variant: "destructive",
+                    title: "Invalid Time Format",
+                    description: "Please enter time in 24-hour format (e.g., 14:30)",
+                });
+                return;
+            }
+        }
+
+        // Validate destination and airline (no numbers allowed)
+        if ((name === 'destination' || name === 'airline') && /\d/.test(value)) {
+            toast({
+                variant: "destructive",
+                title: "Invalid Input",
+                description: `${name.charAt(0).toUpperCase() + name.slice(1)} cannot contain numbers.`,
+            });
+            return;
+        }
+
+        setNewFlight(prev => ({ ...prev, [name]: value }));
     };
 
     const handleUpdate = (flight: Flight) => {
         setEditingFlight(flight);
         setNewFlight(flight);
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setNewFlight({
+            id: 0,
+            destination: '',
+            depart: '',
+            airline: '',
+            date: '',
+        });
+        setEditingFlight(null);
     };
 
     const handleDelete = async (id: number) => {
@@ -71,8 +134,18 @@ const Flights = () => {
                 }
                 const updatedFlight = await response.json();
                 setFlights(flights.map(flight => (flight.id === updatedFlight.id ? updatedFlight : flight)));
+                toast({
+                    title: "Success",
+                    description: "Flight updated successfully!",
+                });
+                handleModalClose();
             } catch (error) {
                 console.error('Error updating flight:', error);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to update flight. Please try again.",
+                });
             }
         } else {
             // Create new flight
@@ -89,103 +162,176 @@ const Flights = () => {
                 }
                 const createdFlight = await response.json();
                 setFlights([...flights, createdFlight]);
+                toast({
+                    title: "Success",
+                    description: "New flight added successfully!",
+                });
+                handleModalClose();
             } catch (error) {
                 console.error('Error creating flight:', error);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to create flight. Please try again.",
+                });
             }
         }
-
-        // Reset form and editing state after submission
-        setNewFlight({
-            id: 0,
-            destination: '',
-            depart: '',
-            airline: '',
-            date: '',
-        });
-        setEditingFlight(null);
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-3xl font-bold mb-4 text-yellow-300">Manage Flights</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                    type="text"
-                    name="destination"
-                    placeholder="Destination"
-                    value={newFlight.destination}
-                    onChange={handleInputChange}
-                    required
-                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                    type="text"
-                    name="depart"
-                    placeholder="Departure Time (e.g., 14:30)"
-                    value={newFlight.depart}
-                    onChange={handleInputChange}
-                    required
-                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                    type="text"
-                    name="airline"
-                    placeholder="Airline"
-                    value={newFlight.airline}
-                    onChange={handleInputChange}
-                    required
-                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                    type="date"
-                    name="date"
-                    value={newFlight.date}
-                    onChange={handleInputChange}
-                    required
-                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition duration-200"
-                >
-                    {editingFlight ? 'Update Flight' : 'Add Flight'}
-                </button>
-            </form>
+        <>
+            <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-md">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-3xl font-bold text-yellow-300">Manage Flights</h2>
+                    <button
+                        onClick={() => {
+                            setEditingFlight(null);
+                            setNewFlight({
+                                id: 0,
+                                destination: '',
+                                depart: '',
+                                airline: '',
+                                date: '',
+                            });
+                            setIsModalOpen(true);
+                        }}
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+                    >
+                        Add New Flight
+                    </button>
+                </div>
 
-            {/* Displaying the list of flights in a table */}
-            <div className="mt-6">
-                <h3 className="text-xl font-semibold mb-2 text-yellow-300">Existing Flights</h3>
-                {flights.length > 0 ? (
-                    <table className="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th className="py-2">Destination</th>
-                                <th className="py-2">Airline</th>
-                                <th className="py-2">Date</th>
-                                <th className="py-2">Departure</th>
-                                <th className="py-2">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {flights.map((flight) => (
-                                <tr key={flight.id}>
-                                    <td className="border px-4 py-2">{flight.destination}</td>
-                                    <td className="border px-4 py-2">{flight.airline}</td>
-                                    <td className="border px-4 py-2">{flight.date}</td>
-                                    <td className="border px-4 py-2">{flight.depart}</td>
-                                    <td className="border px-4 py-2 space-x-2">
-                                        <UpdateButton onClick={() => handleUpdate(flight)} />
-                                        <DeleteButton onClick={() => handleDelete(flight.id)} />
-                                    </td>
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <DialogContent className="sm:max-w-[425px] bg-white">
+                        <DialogHeader>
+                            <DialogTitle>{editingFlight ? 'Edit Flight' : 'Add New Flight'}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleSubmit(e);
+                            handleModalClose();
+                        }} className="space-y-4 mt-4">
+                            <div className="space-y-2">
+                                <label htmlFor="destination" className="text-sm font-medium">Destination</label>
+                                <input
+                                    id="destination"
+                                    type="text"
+                                    name="destination"
+                                    value={newFlight.destination}
+                                    onChange={(e) => setNewFlight({ ...newFlight, destination: e.target.value })}
+                                    required
+                                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="airline" className="text-sm font-medium">Airline</label>
+                                <input
+                                    id="airline"
+                                    type="text"
+                                    name="airline"
+                                    value={newFlight.airline}
+                                    onChange={(e) => setNewFlight({ ...newFlight, airline: e.target.value })}
+                                    required
+                                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="date" className="text-sm font-medium">Date</label>
+                                <input
+                                    id="date"
+                                    type="date"
+                                    name="date"
+                                    value={newFlight.date}
+                                    onChange={(e) => setNewFlight({ ...newFlight, date: e.target.value })}
+                                    required
+                                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="depart" className="text-sm font-medium">Departure Time</label>
+                                <input
+                                    id="depart"
+                                    type="text"
+                                    name="depart"
+                                    placeholder="14:30"
+                                    value={newFlight.depart}
+                                    onChange={(e) => setNewFlight({ ...newFlight, depart: e.target.value })}
+                                    required
+                                    className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={handleModalClose}
+                                    className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                    {editingFlight ? 'Update Flight' : 'Add Flight'}
+                                </button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 shadow-md">
+                    <h3 className="text-xl font-semibold p-4 bg-gray-50 text-gray-700 border-b">Existing Flights</h3>
+                    {flights.length > 0 ? (
+                        <table className="w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Destination
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Airline
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Date
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Departure
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p>No flights available.</p>
-                )}
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {flights.map((flight) => (
+                                    <tr key={flight.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {flight.destination}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {flight.airline}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {flight.date}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {flight.depart}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                                            <UpdateButton onClick={() => handleUpdate(flight)} />
+                                            <DeleteButton onClick={() => handleDelete(flight.id)} />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="p-4 text-gray-500 text-center">No flights available.</p>
+                    )}
+                </div>
             </div>
-        </div>
+            <Toaster />
+        </>
     );
 };
 
