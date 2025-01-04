@@ -2,18 +2,20 @@ import { NextResponse, NextRequest } from 'next/server';
 import pool from '@/db';
 
 // GET: Fetch all posts
-export const GET = async (req:NextRequest) => {
-  try {
-    const client = await pool.connect();
-    const query = 'SELECT * FROM post;';
-    const result = await client.query(query);
-    client.release();
-    return NextResponse.json(result.rows, { status: 200 });
-  } catch (error) {
-    console.error('Error fetching posts:', error);
-    return NextResponse.json({ message: 'Error fetching posts' }, { status: 500 });
-  }
-};
+export const GET = async (req: NextRequest) => {
+    const { userid } = await req.json();
+    try {
+      const client = await pool.connect();
+      const query = 'SELECT * FROM post WHERE userid = $1;';
+      const result = await client.query(query, [userid]);
+      client.release();
+      return NextResponse.json(result.rows, { status: 200 });
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      return NextResponse.json({ message: 'Error fetching posts' }, { status: 500 });
+    }
+  };
+  
 
 // POST: Create a new post
 export const POST = async (req:NextRequest) => {
@@ -63,8 +65,7 @@ export const PUT = async (req:NextRequest) => {
 // DELETE: Delete a post
 export const DELETE = async (req:NextRequest) => {
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
+    const { id } = await req.json();
 
     if (!id) {
       return NextResponse.json({ message: 'Missing post ID' }, { status: 400 });
