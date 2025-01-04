@@ -26,20 +26,24 @@ const Reservations = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        const fetchReservations = async () => {
-            try {
-                const response = await fetch('/api/admin/resevation'); // Adjust API endpoint as necessary
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setReservations(data);
-            } catch (error) {
-                console.error('Error fetching reservations:', error);
-            }
-        };
         fetchReservations();
     }, []);
+
+    const fetchReservations = async () => {
+        try {
+            const response = await fetch('/api/admin/resevation');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            setReservations(data);
+        } catch (error) {
+            console.error('Error:', error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to fetch reservations",
+            });
+        }
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -281,44 +285,73 @@ const Reservations = () => {
                     </DialogContent>
                 </Dialog>
 
-                {/* Your existing table code with updated styling */}
                 <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 shadow-md">
                     <h3 className="text-xl font-semibold p-4 bg-gray-50 text-gray-700 border-b">
                         Existing Reservations
                     </h3>
-                    {reservations.length > 0 ? (
-                        <table className="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th className="py-2">Reservation ID</th>
-                                    <th className="py-2">Flight ID</th>
-                                    <th className="py-2">Meal ID</th>
-                                    <th className="py-2">User ID</th>
-                                    <th className="py-2">Price</th>
-                                    <th className="py-2">Status</th>
-                                    <th className="py-2">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {reservations.map((reservation) => (
-                                    <tr key={reservation.id} className="border-t">
-                                        <td className="py-2">{reservation.id}</td>
-                                        <td className="py-2">{reservation.flightid}</td>
-                                        <td className="py-2">{reservation.mealid}</td>
-                                        <td className="py-2">{reservation.userid}</td>
-                                        <td className="py-2">${reservation.price}</td>
-                                        <td className="py-2">{reservation.done ? 'Completed' : 'Pending'}</td>
-                                        <td className="py-2 space-x-2">
+                    <table className="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Reservation ID
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Flight ID
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Meal ID
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    User ID
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Price
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {reservations.length > 0 ? (
+                                reservations.map((reservation) => (
+                                    <tr key={reservation.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {reservation.id}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {reservation.flightid}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {reservation.mealid}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {reservation.userid}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            ${reservation.price}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {reservation.done ? 'Completed' : 'Pending'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                                             <UpdateButton onClick={() => handleUpdate(reservation)} />
                                             <DeleteButton onClick={() => handleDelete(reservation.id)} />
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p>No reservations available.</p>
-                    )}
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                                        No reservations available.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <Toaster />
