@@ -118,17 +118,9 @@ export interface EconomyFlight {
     joinedDate: Date;
 }
 export interface Post {
-    authorPhoto: string;
-    id:number;
-    title: string;
+    id: number;
+    userid: number;
     content: string;
-    photos: string[];
-    author_id: number;
-    authorName: string;
-    upvotes: number;
-    downvotes: number;
-    comments: Comment[];
-    tags: string[];
     createdAt: Date;
 }
 
