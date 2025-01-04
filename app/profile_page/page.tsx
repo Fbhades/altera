@@ -77,21 +77,38 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
-      try {
-        const profileResponse = await fetch('/api/profile');
-        const profileData = await profileResponse.json();
-        setProfile(profileData);
+      if (isSignedIn && user) {
+        try {
+          const primaryEmail = user.primaryEmailAddress?.emailAddress;
+          if (primaryEmail) {
+            // First get the user ID
+            const userResponse = await fetch(`/api/auth/${encodeURIComponent(primaryEmail)}`);
+            if (!userResponse.ok) throw new Error('Failed to get user data');
+            const userData = await userResponse.json();
 
-        const postsResponse = await fetch(`/api/posts?userId=${profileData.id}`);
-        const postsData = await postsResponse.json();
-        setUserPosts(postsData);
-      } catch (error) {
-        console.error('Error fetching profile data:', error);
+            // Then fetch posts using the user ID
+            const response = await fetch('/api/post', {
+              method: 'POST', // Using POST because the GET endpoint expects a body
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userid: userData.id
+              }),
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch posts');
+            const postsData = await response.json();
+            setUserPosts(postsData);
+          }
+        } catch (error) {
+          console.error('Error fetching posts:', error);
+        }
       }
     };
 
     fetchProfileAndPosts();
-  }, []);
+  }, [isSignedIn, user]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -110,19 +127,16 @@ export default function ProfilePage() {
       if (!userResponse.ok) throw new Error('Failed to get user data');
       const userData = await userResponse.json();
 
-      // Match the API's expected format exactly
       const response = await fetch('/api/post', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userid: userData.userid,
+          userid: userData.id,
           content: newPost.content.trim()
         }),
       });
-      console.log(userData.userid);
-      console.log(newPost.content.trim());
 
       if (!response.ok) {
         const errorData = await response.json();
