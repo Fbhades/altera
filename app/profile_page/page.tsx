@@ -21,7 +21,9 @@ export default function ProfilePage() {
       posts: [],
       joinedDate: new Date()
     })
-  const [userPosts, setUserPosts] = useState<Post[]>([])
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const router = useRouter()
   const [showHistory, setShowHistory] = useState(false)
   const [reservationHistory, setReservationHistory] = useState([])
@@ -38,11 +40,20 @@ export default function ProfilePage() {
             const response = await fetch(`/api/auth/${encodeURIComponent(primaryEmail)}`);
             if (response.ok) {
               const userData = await response.json();
-              // Use userData.id for fetching reservations
-              const reservationsResponse = await fetch(`/api/admin/resevation?userid=${userData.id}`);
+              // Use userData.userid for fetching reservations
+              const reservationsResponse = await fetch(`/api/admin/resevation?userid=${userData.userid}`);
               if (reservationsResponse.ok) {
                 const reservationsData = await reservationsResponse.json();
                 setReservationHistory(reservationsData);
+              }
+              const followersCountResponse = await fetch(`/api/follwers/count/${userData.userid}`);
+              const followingCountResponse = await fetch(`/api/follwers/${userData.userid}`);
+              
+              if (followersCountResponse.ok && followingCountResponse.ok) {
+                const followersData = await followersCountResponse.json();
+                const followingData = await followingCountResponse.json();
+                setFollowerCount(followersData.followers_count);
+                setFollowingCount(followingData.following_count);
               }
             }
           }
@@ -63,7 +74,7 @@ export default function ProfilePage() {
           const response = await fetch(`/api/auth/${encodeURIComponent(primaryEmail)}`);
           if (response.ok) {
             const userData = await response.json();
-            const reservationsResponse = await fetch(`/api/admin/resevation?userid=${userData.id}`);
+            const reservationsResponse = await fetch(`/api/admin/resevation?userid=${userData.userid}`);
             if (!reservationsResponse.ok) throw new Error('Failed to fetch reservations');
             const data = await reservationsResponse.json();
             setReservationHistory(data);
@@ -85,18 +96,10 @@ export default function ProfilePage() {
             const userResponse = await fetch(`/api/auth/${encodeURIComponent(primaryEmail)}`);
             if (!userResponse.ok) throw new Error('Failed to get user data');
             const userData = await userResponse.json();
+            console.log(userData.userid);
 
-            // Then fetch posts using the user ID
-            const response = await fetch('/api/post', {
-              method: 'POST', // Using POST because the GET endpoint expects a body
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userid: userData.id
-              }),
-            });
-
+            // Then fetch posts using the user ID with GET method
+            const response = await fetch(`/api/post?userid=${userData.userid}`);
             if (!response.ok) throw new Error('Failed to fetch posts');
             const postsData = await response.json();
             setUserPosts(postsData);
@@ -110,11 +113,6 @@ export default function ProfilePage() {
     fetchProfileAndPosts();
   }, [isSignedIn, user]);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setSelectedImages(prev => [...prev, ...files]);
-  };
-
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSignedIn || !user || !newPost.content.trim()) return;
@@ -127,13 +125,17 @@ export default function ProfilePage() {
       if (!userResponse.ok) throw new Error('Failed to get user data');
       const userData = await userResponse.json();
 
+      const formData = new FormData();
+      formData.append('userid', userData.userid);
+      formData.append('content', newPost.content.trim());
+
       const response = await fetch('/api/post', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userid: userData.id,
+          userid: userData.userid,
           content: newPost.content.trim()
         }),
       });
@@ -160,37 +162,31 @@ export default function ProfilePage() {
           <div className="flex items-center">
             <div className="relative h-32 w-32">
               <Image
-                src={profile.profilePicture || '/default-avatar.png'}
-                alt={profile.username || 'User'}
+                src={user?.imageUrl || '/default-avatar.png'}
+                alt={user?.fullName || 'User'}
                 fill
                 className="rounded-full object-cover"
               />
             </div>
             <div className="ml-8">
-              <h1 className="text-3xl font-bold text-gray-800">{profile.username || 'Loading...'}</h1>
-              <p className="text-gray-600 mt-2">{profile.email || 'Loading...'}</p>
+              <h1 className="text-3xl font-bold text-gray-800">{user?.fullName || 'Loading...'}</h1>
+              <p className="text-gray-600 mt-2">{user?.primaryEmailAddress?.emailAddress || 'Loading...'}</p>
               <div className="mt-4 flex space-x-4">
                 <div className="text-center">
                   <span className="block font-bold text-gray-800">{userPosts.length}</span>
                   <span className="text-gray-600">Posts</span>
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-gray-800">{profile.followers?.length || 0}</span>
+                  <span className="block font-bold text-gray-800">{followerCount}</span>
                   <span className="text-gray-600">Followers</span>
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-gray-800">{profile.following?.length || 0}</span>
+                  <span className="block font-bold text-gray-800">{followingCount}</span>
                   <span className="text-gray-600">Following</span>
                 </div>
               </div>
             </div>
           </div>
-          {profile.bio && (
-            <div className="mt-6">
-              <h2 className="font-semibold text-gray-800 mb-2">About</h2>
-              <p className="text-gray-600">{profile.bio}</p>
-            </div>
-          )}
           <div className="mt-4">
             <Button
               onClick={() => {
@@ -224,16 +220,16 @@ export default function ProfilePage() {
               >
                 <div className="flex items-center mb-4">
                   <Image
-                    src={profile.profilePicture || '/default-avatar.png'}
-                    alt={profile.username}
+                    src={user?.imageUrl || '/default-avatar.png'}
+                    alt={user?.fullName || 'User'}
                     width={40}
                     height={40}
                     className="rounded-full"
                   />
                   <div className="ml-3">
-                    <h3 className="font-semibold text-gray-800">{profile.username}</h3>
+                    <h3 className="font-semibold text-gray-800">{user?.fullName}</h3>
                     <p className="text-sm text-gray-500">
-                      {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Unknown date'}
+                        {new Date(post.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -329,4 +325,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-

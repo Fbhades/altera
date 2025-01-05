@@ -3,18 +3,21 @@ import pool from '@/db';
 
 // GET: Fetch all posts
 export const GET = async (req: NextRequest) => {
-    const { userid } = await req.json();
-    try {
-      const client = await pool.connect();
-      const query = 'SELECT * FROM post WHERE userid = $1;';
-      const result = await client.query(query, [userid]);
-      client.release();
-      return NextResponse.json(result.rows, { status: 200 });
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      return NextResponse.json({ message: 'Error fetching posts' }, { status: 500 });
-    }
-  };
+  const { searchParams } = new URL(req.url);
+  const userid = searchParams.get('userid');
+  
+  try {
+    const client = await pool.connect();
+    const query = 'SELECT * FROM post WHERE userid = $1 ORDER BY "created_at" DESC;';
+    const result = await client.query(query, [userid]);
+    console.log(result.rows);
+    client.release();
+    return NextResponse.json(result.rows, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    return NextResponse.json({ message: 'Error fetching posts' }, { status: 500 });
+  }
+};
   
 
 // POST: Create a new post

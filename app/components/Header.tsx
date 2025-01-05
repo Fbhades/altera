@@ -65,6 +65,9 @@ const Header = () => {
                     <Link href="/admin">Admin</Link>
                   </Button>
                 )}
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/profile_page">Profile</Link>
+                  </Button>
                 <UserButton afterSignOutUrl="/" />
               </li>
             ) : (
