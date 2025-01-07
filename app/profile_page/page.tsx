@@ -1,32 +1,49 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
-import { Post } from "../Interface/interface";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { HistoryModal } from "../components/history-modal";
-import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
+// import { Avatar } from "@/components/ui/avatar";
+import { HistoryModal } from "../components/history-modal";
+
+interface Post {
+  id: number;
+  content: string;
+  created_at: string;
+  upvotes: number;
+  comment_count: number;
+  has_upvoted: boolean;
+}
+
+interface Comment {
+  comment_id: number;
+  user_id: number;
+  user_name: string;
+  comment_content: string;
+  created_at: string;
+}
 
 export default function ProfilePage() {
   const { user, isSignedIn } = useUser();
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
-  const router = useRouter();
   const [showHistory, setShowHistory] = useState(false);
   const [reservationHistory, setReservationHistory] = useState([]);
   const [showPostDialog, setShowPostDialog] = useState(false);
   const [newPost, setNewPost] = useState({ content: "" });
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [selectedPost, setSelectedPost] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [showCommentDialog, setShowCommentDialog] = useState(false);
+  const [postComments, setPostComments] = useState<Comment[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -39,27 +56,9 @@ export default function ProfilePage() {
             );
             if (response.ok) {
               const userData = await response.json();
-              // Use userData.userid for fetching reservations
-              const reservationsResponse = await fetch(
-                `/api/admin/resevation?userid=${userData.userid}`
-              );
-              if (reservationsResponse.ok) {
-                const reservationsData = await reservationsResponse.json();
-                setReservationHistory(reservationsData);
-              }
-              const followersCountResponse = await fetch(
-                `/api/follwers/count/${userData.userid}`
-              );
-              const followingCountResponse = await fetch(
-                `/api/follwers/${userData.userid}`
-              );
-
-              if (followersCountResponse.ok && followingCountResponse.ok) {
-                const followersData = await followersCountResponse.json();
-                const followingData = await followingCountResponse.json();
-                setFollowerCount(followersData.followers_count);
-                setFollowingCount(followingData.following_count);
-              }
+              fetchReservationHistory(userData.userid);
+              fetchFollowerCounts(userData.userid);
+              fetchUserPosts(userData.userid);
             }
           }
         } catch (error) {
@@ -70,6 +69,53 @@ export default function ProfilePage() {
 
     fetchUserData();
   }, [isSignedIn, user]);
+
+  const fetchReservationHistory = async (userId: string) => {
+    try {
+      const reservationsResponse = await fetch(
+        `/api/admin/resevation?userid=${userId}`
+      );
+      if (reservationsResponse.ok) {
+        const reservationsData = await reservationsResponse.json();
+        setReservationHistory(reservationsData);
+      }
+    } catch (error) {
+      console.error("Error fetching reservation history:", error);
+    }
+  };
+
+  const fetchFollowerCounts = async (userId: string) => {
+    try {
+      // Fetch follower count from the correct endpoint
+      const followersCountResponse = await fetch(`/api/follower/${userId}`);
+  
+      // Assuming you have a separate endpoint for following count, adjust as necessary
+      const followingCountResponse = await fetch(`/api/following/${userId}`); // Update this if you have a different endpoint
+  
+      if (followersCountResponse.ok && followingCountResponse.ok) {
+        const followersData = await followersCountResponse.json();
+        const followingData = await followingCountResponse.json();
+  
+        // Set state with the fetched data
+        setFollowerCount(followersData.followerCount); // Adjusted to match the response structure
+        setFollowingCount(followingData.following_count); // Ensure this matches your actual response structure
+      }
+    } catch (error) {
+      console.error("Error fetching follower counts:", error);
+    }
+  };
+  
+
+  const fetchUserPosts = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/post?userid=${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch posts");
+      const postsData = await response.json();
+      setUserPosts(postsData);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  };
 
   const handleUpvote = async (postId: number) => {
     try {
@@ -106,11 +152,38 @@ export default function ProfilePage() {
       console.error("Error upvoting post:", error);
     }
   };
-
-  const handleShowComments = (postId: number) => {
+  const handleShowComments = async (postId: number) => {
+    console.log(postId)
     setSelectedPost(postId);
-    setShowCommentDialog(true);
+    try {
+
+      const response = await fetch('/api/showComment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postid: postId }),
+      });
+
+      if (response.ok) {
+        const comments = await response.json();
+        setPostComments(comments);
+        if (comments.length > 0) {
+          setShowCommentDialog(true);
+        } else {
+          // If there are no comments, show the add comment form directly
+          setComment("");
+          setShowCommentDialog(true);
+        }
+      } else {
+        console.error("Failed to fetch comments");
+      }
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
   };
+  
+  
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,13 +203,15 @@ export default function ProfilePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          postId: selectedPost,
-          userId: userData.userid,
-          content: comment.trim(),
+          postid: selectedPost,
+          user_id: userData.userid,
+          comment_content: comment.trim(),
         }),
       });
 
       if (response.ok) {
+        const newComment = await response.json();
+        setPostComments([...postComments, newComment]);
         setUserPosts((posts) =>
           posts.map((post) =>
             post.id === selectedPost
@@ -145,66 +220,11 @@ export default function ProfilePage() {
           )
         );
         setComment("");
-        setShowCommentDialog(false);
       }
     } catch (error) {
       console.error("Error adding comment:", error);
     }
   };
-
-  const fetchReservationHistory = async () => {
-    if (isSignedIn && user) {
-      try {
-        const primaryEmail = user.primaryEmailAddress?.emailAddress;
-        if (primaryEmail) {
-          const response = await fetch(
-            `/api/auth/${encodeURIComponent(primaryEmail)}`
-          );
-          if (response.ok) {
-            const userData = await response.json();
-            const reservationsResponse = await fetch(
-              `/api/admin/resevation?userid=${userData.userid}`
-            );
-            if (!reservationsResponse.ok)
-              throw new Error("Failed to fetch reservations");
-            const data = await reservationsResponse.json();
-            setReservationHistory(data);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching reservation history:", error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const fetchProfileAndPosts = async () => {
-      if (isSignedIn && user) {
-        try {
-          const primaryEmail = user.primaryEmailAddress?.emailAddress;
-          if (primaryEmail) {
-            // First get the user ID
-            const userResponse = await fetch(
-              `/api/auth/${encodeURIComponent(primaryEmail)}`
-            );
-            if (!userResponse.ok) throw new Error("Failed to get user data");
-            const userData = await userResponse.json();
-            console.log(userData.userid);
-
-            // Then fetch posts using the user ID with GET method
-            const response = await fetch(`/api/post?userid=${userData.userid}`);
-            if (!response.ok) throw new Error("Failed to fetch posts");
-            const postsData = await response.json();
-            setUserPosts(postsData);
-          }
-        } catch (error) {
-          console.error("Error fetching posts:", error);
-        }
-      }
-    };
-
-    fetchProfileAndPosts();
-  }, [isSignedIn, user]);
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,10 +239,6 @@ export default function ProfilePage() {
       );
       if (!userResponse.ok) throw new Error("Failed to get user data");
       const userData = await userResponse.json();
-
-      const formData = new FormData();
-      formData.append("userid", userData.userid);
-      formData.append("content", newPost.content.trim());
 
       const response = await fetch("/api/post", {
         method: "POST",
@@ -253,16 +269,15 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Profile Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <Card className="p-6 mb-8">
           <div className="flex items-center">
-            <div className="relative h-32 w-32">
-              <Image
-                src={user?.imageUrl || "/default-avatar.png"}
-                alt={user?.fullName || "User"}
-                fill
-                className="rounded-full object-cover"
-              />
-            </div>
+            <Image
+              src={user?.imageUrl || "/default-avatar.png"}
+              alt={user?.fullName || "User"}
+              width={128}
+              height={128}
+              className="rounded-full"
+            />
             <div className="ml-8">
               <h1 className="text-3xl font-bold text-gray-800">
                 {user?.fullName || "Loading..."}
@@ -294,30 +309,27 @@ export default function ProfilePage() {
           </div>
           <div className="mt-4">
             <Button
-              onClick={() => {
-                fetchReservationHistory();
-                setShowHistory(true);
-              }}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+              onClick={() => setShowHistory(true)}
+              className="bg-blue-600 text-white hover:bg-blue-700"
             >
               View Reservation History
             </Button>
           </div>
-        </div>
+        </Card>
 
         {/* User's Posts */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Posts</h2>
           <Button
             onClick={() => setShowPostDialog(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+            className="bg-blue-600 text-white hover:bg-blue-700"
           >
             Create Post
           </Button>
         </div>
         <div className="space-y-6">
           {userPosts.map((post) => (
-            <div key={post.id} className="bg-white rounded-lg shadow-md p-6">
+            <Card key={post.id} className="p-6">
               <div className="flex items-center mb-4">
                 <Image
                   src={user?.imageUrl || "/default-avatar.png"}
@@ -340,10 +352,7 @@ export default function ProfilePage() {
 
               <div className="flex items-center space-x-6">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUpvote(post.id);
-                  }}
+                  onClick={() => handleUpvote(post.id)}
                   className={`flex items-center space-x-1 ${
                     post.has_upvoted ? "text-blue-600" : "text-gray-500"
                   } hover:text-blue-600`}
@@ -365,10 +374,7 @@ export default function ProfilePage() {
                 </button>
 
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleShowComments(post.id);
-                  }}
+                  onClick={() => handleShowComments(post.id)}
                   className="flex items-center space-x-1 text-gray-500 hover:text-blue-600"
                 >
                   <svg
@@ -387,51 +393,69 @@ export default function ProfilePage() {
                   <span>{post.comment_count || 0}</span>
                 </button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
+
       <HistoryModal
         isOpen={showHistory}
         onClose={() => setShowHistory(false)}
         reservations={reservationHistory}
       />
-      <Dialog open={showCommentDialog} onOpenChange={setShowCommentDialog}>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Add Comment</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddComment} className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                required
-                rows={4}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Write your comment..."
-              />
-            </div>
-            <div className="flex justify-end space-x-3">
-              <Button
-                type="button"
-                onClick={() => setShowCommentDialog(false)}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Add Comment
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+<Dialog open={showCommentDialog} onOpenChange={setShowCommentDialog}>
+  <DialogContent className="sm:max-w-[425px] bg-white shadow-lg rounded-lg p-6">
+    <DialogHeader>
+      <DialogTitle className="text-xl font-bold text-gray-800">
+        {postComments.length > 0 ? "Comments" : "Add Comment"}
+      </DialogTitle>
+    </DialogHeader>
+    {postComments.length > 0 ? (
+      <div className="max-h-[300px] overflow-y-auto space-y-4 mt-4">
+        {postComments.map((comment: any) => (
+          <div key={comment.comment_id} className="border-b pb-2">
+            <p className="font-semibold text-gray-700">{comment.user_name}</p>
+            <p className="text-gray-600">{comment.comment_content}</p> {/* Ensure this line is present */}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="text-gray-500 mt-4">No comments yet.</p> // Optional message when there are no comments
+    )}
+    <form onSubmit={handleAddComment} className="space-y-4 mt-4">
+      <div className="space-y-2">
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          required
+          rows={4}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+          placeholder="Write your comment..."
+        />
+      </div>
+      <div className="flex justify-end space-x-3">
+        <Button
+          type="button"
+          onClick={() => setShowCommentDialog(false)}
+          className="border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 transition duration-200"
+        >
+          Close
+        </Button>
+        <Button
+          type="submit"
+          className="bg-blue-600 text-white hover:bg-blue-700 rounded-lg px-4 py-2 transition duration-200"
+        >
+          {postComments.length > 0 ? "Add Comment" : "Post Comment"}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
+
+
       <Dialog open={showPostDialog} onOpenChange={setShowPostDialog}>
-        <DialogContent className="sm:max-w-[425px] bg-white">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Create New Post</DialogTitle>
           </DialogHeader>
@@ -451,55 +475,17 @@ export default function ProfilePage() {
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div>
-              {selectedImages.length > 0 && (
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {selectedImages.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={URL.createObjectURL(image)}
-                        alt={`Preview ${index}`}
-                        className="h-20 w-20 object-cover rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedImages((prev) =>
-                            prev.filter((_, i) => i !== index)
-                          )
-                        }
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
                 onClick={() => setShowPostDialog(false)}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                className="border border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="bg-blue-600 text-white hover:bg-blue-700"
               >
                 Create Post
               </Button>
@@ -510,3 +496,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
