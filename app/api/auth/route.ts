@@ -20,7 +20,7 @@ export const GET = async (req: NextRequest) => {
     try {
       const client = await pool.connect();
       const { name, email, role } = await req.json(); // role should be a boolean (true/false)
-  
+
       const query = `
         INSERT INTO users (name, email, role)
         VALUES ($1, $2, $3);

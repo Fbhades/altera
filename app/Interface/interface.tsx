@@ -13,6 +13,7 @@ export interface searchFlight {
     baggage_allowance:number;
     lounge_access : boolean// Assuming date format
   }
+  
   export interface Flight {
     id: number;
     destination: string;

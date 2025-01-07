@@ -12,6 +12,26 @@ const Hero = () => {
   const [flights, setFlights] = useState<searchFlight[]>([]);
   const [error, setError] = useState('');
   const router = useRouter();
+  const [recommendations, setRecommendations] = useState<searchFlight[]>([]);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        // Assuming you have the user ID from authentication
+        const userId = 1; // Replace with actual user ID from auth
+        const response = await fetch(`/api/recommendations/${userId}`);
+        if (!response.ok) throw new Error('Failed to fetch recommendations');
+        const data = await response.json();
+        setRecommendations(data);
+      } catch (err) {
+        console.error('Error fetching recommendations:', err);
+      }
+    };
+
+    fetchRecommendations();
+  }, []);
+
+  console.log(recommendations);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,6 +82,41 @@ const Hero = () => {
           <option value="business">Business</option>
         </select>
       </div>
+
+      {/* Add recommendations section */}
+      {recommendations.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-3xl font-bold mb-6">Recommended for You</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mx-4">
+            {recommendations.map((flight) => (
+              <article key={flight.flight_id} className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm">
+                {/* Use the same flight card template as above */}
+                <img
+                  alt=""
+                  src="https://assets.editorial.aetnd.com/uploads/2019/03/topic-london-gettyimages-760251843-feature.jpg?width=1920&height=960&crop=1920%3A960%2Csmart&quality=75&auto=webp"
+                  className="h-56 w-full object-cover"
+                />
+                <div className="p-4 sm:p-6">
+                  <h3 className="text-lg font-medium text-gray-900">{flight.airline}</h3>
+                  <p className="mt-2 line-clamp-3 text-sm/relaxed text-gray-500">
+                    Destination: {flight.destination}<br />
+                    Date: {flight.date}<br />
+                    Price: {flight.flight_price}$
+                  </p>
+                  <span className="group mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600">
+                    <button onClick={() => router.push('/flightpage/' + flight.flight_id)}>
+                      Find out more
+                    </button>
+                    <span aria-hidden="true" className="block transition-all group-hover:ms-0.5 rtl:rotate-180">
+                      &rarr;
+                    </span>
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8">
         {flights.length > 0 ? (
