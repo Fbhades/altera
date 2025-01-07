@@ -1,141 +1,160 @@
 'use client'
-import React, { useState } from 'react'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
+import { useUser } from "@clerk/nextjs"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { SearchIcon } from "lucide-react"
+import { user as UserInterface } from "../Interface/interface";
 
 export default function SocialPage() {
-  const router = useRouter()
-  const [showCommentInput, setShowCommentInput] = useState(false)
-  const [comment, setComment] = useState('')
-  const [isUpvoted, setIsUpvoted] = useState(false)
-  const [upvoteCount, setUpvoteCount] = useState(42)
+  const { user } = useUser();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<UserInterface[]>([]);
+  const [following, setFollowing] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [dbUserId, setDbUserId] = useState<number | null>(null);
 
-  const handleUpvote = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsUpvoted(!isUpvoted)
-    setUpvoteCount(prev => isUpvoted ? prev - 1 : prev + 1)
-    // Here you would typically send the upvote to your API
-  }
+  useEffect(() => {
+    const fetchDbUserId = async () => {
+      if (user?.primaryEmailAddress?.emailAddress) {
+        try {
+          const response = await fetch(`/api/auth/${user.primaryEmailAddress.emailAddress}`);
+          const data = await response.json();
+          setDbUserId(data.userid);
+        } catch (error) {
+          console.error('Error fetching user ID:', error);
+        }
+      }
+    };
+    console.log(user);
+    fetchDbUserId();
+  }, [user]);
 
-  const handleSubmitComment = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!comment.trim()) return
-    // Here you would typically send the comment to your API
-    console.log('Comment submitted:', comment)
-    setComment('')
-    setShowCommentInput(false)
-  }
+  // Search users
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
 
-  const examplePost = {
-    id: 1,
-    title: "My First Flight Experience",
-    content: "Just had an amazing flight! The service was excellent and the views were breathtaking...",
-    authorName: "John Doe",
-    authorPhoto: "/default-avatar.png",
-    createdAt: new Date().toISOString(),
-    upvotes: 42,
-    comments: Array(5),
-    photos: ["/default-avatar.png", "/default-avatar.png"]
-  }
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/user');
+      const users = await response.json();
+      // Filter users based on search term and exclude the signed-in user
+      const filtered = users.filter((user: UserInterface) => 
+        (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        user.id !== dbUserId
+      );
+      setSearchResults(filtered);
+    } catch (error) {
+      console.error('Error searching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Follow user
+  const handleFollow = async (userId: number) => {
+    try {
+      console.log(userId);
+      console.log(user?.id);
+      const response = await fetch('/api/follwers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          follower_id: user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to follow user');
+      }
+
+      setFollowing([...following, userId.toString()]);
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  };
+
+  // Unfollow user
+  const handleUnfollow = async (userId: string) => {
+    try {
+      const response = await fetch('/api/follwers', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          follower_id: user?.id,
+        }),
+      });
+      console.log(userId);
+      console.log(user?.id);
+
+      if (!response.ok) {
+        throw new Error('Failed to unfollow user');
+      }
+
+      setFollowing(following.filter(id => id !== userId));
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">Community Posts</h1>
-        
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="flex items-center mb-4">
-              <Image
-                src={examplePost.authorPhoto}
-                alt={examplePost.authorName}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-              <div className="ml-3">
-                <h2 className="font-semibold text-gray-800">{examplePost.authorName}</h2>
-                <p className="text-sm text-gray-500">
-                  {new Date(examplePost.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-            
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">{examplePost.title}</h3>
-            <p className="text-gray-600 mb-4">{examplePost.content}</p>
-            
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {examplePost.photos.map((photo, index) => (
-                <div key={index} className="relative h-48">
-                  <Image
-                    src={photo}
-                    alt={`Photo ${index + 1}`}
-                    fill
-                    className="object-cover rounded-lg"
-                  />
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex items-center text-gray-500 space-x-4">
-              <button 
-                onClick={handleUpvote}
-                className={`flex items-center hover:text-blue-600 ${isUpvoted ? 'text-blue-600' : ''}`}
-              >
-                <svg className="w-5 h-5 mr-1" fill={isUpvoted ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
-                </svg>
-                <span>{upvoteCount}</span>
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation() // Prevent post click event
-                  setShowCommentInput(!showCommentInput)
-                }}
-                className="flex items-center hover:text-blue-600"
-              >
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
-                </svg>
-                <span>{examplePost.comments.length}</span>
-              </button>
-            </div>
-
-            {showCommentInput && (
-              <form onSubmit={handleSubmitComment} className="mt-4">
-                <input
-                  type="text"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onClick={(e) => e.stopPropagation()} // Prevent post click event
-                />
-                <div className="flex justify-end mt-2 space-x-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowCommentInput(false)
-                      setComment('')
-                    }}
-                    className="px-3 py-1 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    onClick={(e) => e.stopPropagation()}
-                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Comment
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold mb-4">Find People</h1>
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="submit" disabled={loading}>
+            <SearchIcon className="w-4 h-4 mr-2" />
+            Search
+          </Button>
+        </form>
       </div>
+
+      {loading ? (
+        <div className="text-center">Loading...</div>
+      ) : (
+        <div className="grid gap-4">
+          {searchResults.length > 0 ? (
+            searchResults.map((result) => (
+              <Card key={result.id} className="p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold">{result.name}</h3>
+                    <p className="text-sm text-gray-500">{result.email}</p>
+                  </div>
+                  <Button
+                    onClick={() => handleFollow(result.id)}
+                    variant={following.includes(result.id.toString()) ? "secondary" : "default"}
+                  >
+                    {following.includes(result.id.toString()) ? 'Unfollow' : 'Follow'}
+                  </Button>
+                </div>
+              </Card>
+            ))
+          ) : (
+            searchTerm && (
+              <div className="text-center text-gray-500">
+                No users found. Try a different search term.
+              </div>
+            )
+          )}
+        </div>
+      )}
     </div>
-  )
+  );
 }

@@ -43,6 +43,7 @@ export const POST = async (req: NextRequest) => {
     `;
     const result = await client.query(query, [user_id, follower_id]);
     client.release();
+    console.log(user_id, follower_id);
 
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {

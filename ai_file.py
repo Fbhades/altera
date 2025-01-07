@@ -1,27 +1,21 @@
+from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-from sklearn.cluster import KMeans
-import psycopg2
 
-# Connect to your SQL database
-conn = psycopg2.connect("dbname=your_db user=your_user password=your_password")
+# User flight data
+data = {
+    'user_id': [1, 1, 2, 2, 3, 3],
+    'flight_id': [101, 102, 101, 103, 102, 104],
+    'rating': [5, 3, 4, 5, 2, 4]  # Example ratings/preferences
+}
+df = pd.DataFrame(data)
 
-# Fetch user travel history
-user_id = 1  # Example user ID
-travel_history_query = f"""
-SELECT d.name, d.region, d.activities 
-FROM travel_history th 
-JOIN destinations d ON th.destination_id = d.id
-WHERE th.user_id = {user_id};
-"""
-travel_data = pd.read_sql(travel_history_query, conn)
+# Create a user-flight matrix
+user_flight_matrix = df.pivot(index='user_id', columns='flight_id', values='rating').fillna(0)
 
-# Feature Engineering: Create a DataFrame for clustering
-# Example: Count of visits per region
-region_counts = travel_data['region'].value_counts().reset_index()
-region_counts.columns = ['region', 'visit_count']
+# Calculate similarity
+similarity = cosine_similarity(user_flight_matrix)
+print("User similarity matrix:")
+print(similarity)
 
-# Clustering similar regions (K-Means)
-kmeans = KMeans(n_clusters=3)
-region_counts['cluster'] = kmeans.fit_predict(region_counts[['visit_count']])
-
-# Now you can query your SQL database for recommendations based on clusters
+# Recommend flights based on similar users
+# Example: For user 1, suggest flights from similar users (e.g., user 2).
