@@ -44,6 +44,14 @@ export default function ProfilePage() {
   const [comment, setComment] = useState("");
   const [showCommentDialog, setShowCommentDialog] = useState(false);
   const [postComments, setPostComments] = useState<Comment[]>([]);
+  const [followingNames, setFollowingNames] = useState<string[]>([]);
+  const [showFollowingNames, setShowFollowingNames] = useState(false);
+  const [followerNames, setFollowersNames] = useState<string[]>([]);
+  const [showFollowerNames, setShowFollowerNames] = useState(false);
+
+
+
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -68,6 +76,7 @@ export default function ProfilePage() {
     };
 
     fetchUserData();
+    
   }, [isSignedIn, user]);
 
   const fetchReservationHistory = async (userId: string) => {
@@ -86,24 +95,33 @@ export default function ProfilePage() {
 
   const fetchFollowerCounts = async (userId: string) => {
     try {
-      // Fetch follower count from the correct endpoint
-      const followersCountResponse = await fetch(`/api/follower/${userId}`);
-  
-      // Assuming you have a separate endpoint for following count, adjust as necessary
-      const followingCountResponse = await fetch(`/api/following/${userId}`); // Update this if you have a different endpoint
+      const followersCountResponse = await fetch(`/api/followers/${userId}`);
+      const followingCountResponse = await fetch(`/api/following/${userId}`);
   
       if (followersCountResponse.ok && followingCountResponse.ok) {
         const followersData = await followersCountResponse.json();
         const followingData = await followingCountResponse.json();
   
-        // Set state with the fetched data
-        setFollowerCount(followersData.followerCount); // Adjusted to match the response structure
-        setFollowingCount(followingData.following_count); // Ensure this matches your actual response structure
+        const followersNamesResponse = await fetch(`/api/getfollowing/${userId}`);
+      if (followersNamesResponse.ok) {
+        const followingNamesData = await followersNamesResponse.json();
+        setFollowingNames(followingNamesData.followers);  // Assuming names are returned in this format
+      }
+        // Fetch names of the users you're following
+        const followingNamesResponse = await fetch(`/api/getfollowers/${userId}`);
+        if (followingNamesResponse.ok) {
+          const followingNamesData = await followingNamesResponse.json();
+          setFollowingNames(followingNamesData.followers);  // Assuming names are returned in this format
+        }
+        
+        setFollowerCount(followersData.followerCount);
+        setFollowingCount(followingData.following_count);
       }
     } catch (error) {
       console.error("Error fetching follower counts:", error);
     }
   };
+  
   
 
   const fetchUserPosts = async (userId: string) => {
@@ -293,16 +311,47 @@ export default function ProfilePage() {
                   <span className="text-gray-600">Posts</span>
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-gray-800">
-                    {followerCount}
-                  </span>
-                  <span className="text-gray-600">Followers</span>
+                <Button onClick={() => setShowFollowingNames(true)} className="bg-blue-600 text-white hover:bg-blue-700">
+  Following: {followingCount}
+</Button>
+
+<Dialog open={showFollowerNames} onOpenChange={setShowFollowerNames}>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Followers</DialogTitle>
+    </DialogHeader>
+    <ul>
+      {followerNames.map((name, index) => (
+        <li key={index} className="text-gray-800">{name}</li>
+      ))}
+    </ul>
+  </DialogContent>
+</Dialog>
+
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-gray-800">
-                    {followingCount}
-                  </span>
-                  <span className="text-gray-600">Following</span>
+                <Button onClick={() => setShowFollowingNames(true)} className="bg-blue-600 text-white hover:bg-blue-700">
+  Following: {followingCount}
+</Button>
+
+<Dialog open={showFollowingNames} onOpenChange={setShowFollowingNames}>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Following</DialogTitle>
+    </DialogHeader>
+    <ul>
+  {followingNames && followingNames.length > 0 ? (
+    followingNames.map((name, index) => (
+      <li key={index} className="text-gray-800">{name}</li>
+    ))
+  ) : (
+    <li>No following</li>
+  )}
+</ul>
+
+  </DialogContent>
+</Dialog>
+
                 </div>
               </div>
             </div>

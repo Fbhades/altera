@@ -1,10 +1,10 @@
-'use client'
-import React, { useState, useEffect } from 'react'
-import { useUser } from "@clerk/nextjs"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { SearchIcon } from "lucide-react"
+"use client"
+import React, { useState, useEffect } from 'react';
+import { useUser } from "@clerk/nextjs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { SearchIcon } from "lucide-react";
 import { user as UserInterface } from "../Interface/interface";
 
 export default function SocialPage() {
@@ -15,75 +15,97 @@ export default function SocialPage() {
   const [loading, setLoading] = useState(false);
   const [dbUserId, setDbUserId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchDbUserId = async () => {
-      if (user?.primaryEmailAddress?.emailAddress) {
-        try {
-          const response = await fetch(`/api/auth/${user.primaryEmailAddress.emailAddress}`);
-          const data = await response.json();
-          setDbUserId(data.userid);
-        } catch (error) {
-          console.error('Error fetching user ID:', error);
-        }
+  // Fetch the database user ID based on the logged-in user's email
+  const fetchDbUserId = async () => {
+    if (user?.primaryEmailAddress?.emailAddress) {
+      try {
+        const response = await fetch(`/api/auth/${user.primaryEmailAddress.emailAddress}`);
+        const data = await response.json();
+        setDbUserId(data.userid);
+      } catch (error) {
+        console.error('Error fetching user ID:', error);
       }
-    };
-    console.log(user);
+    }
+  };
+
+  // Fetch users and their IDs
+  const fetchUsersWithIds = async () => {
+    try {
+      // Fetch all users from admin endpoint
+      const response = await fetch('/api/admin/user');
+      const users = await response.json();
+
+      // Fetch IDs for each user based on their email
+      const usersWithIds = await Promise.all(users.map(async (user: UserInterface) => {
+        try {
+          const emailResponse = await fetch(`/api/auth/${user.email}`);
+          const emailData = await emailResponse.json();
+          return { ...user, id: emailData.userid }; // Assuming userid is returned
+        } catch (error) {
+          console.error(`Error fetching ID for ${user.email}:`, error);
+          return user; // Fallback to original user if error occurs
+        }
+      }));
+
+      setSearchResults(usersWithIds); // Store combined data in state
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  // Fetch user ID when the component mounts or when the user changes
+  useEffect(() => {
     fetchDbUserId();
+    fetchUsersWithIds(); // Fetch users when component mounts
   }, [user]);
 
   // Search users
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch('/api/admin/user');
-      const users = await response.json();
-      // Filter users based on search term and exclude the signed-in user
-      const filtered = users.filter((user: UserInterface) => 
-        (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        user.id !== dbUserId
-      );
-      setSearchResults(filtered);
-    } catch (error) {
-      console.error('Error searching users:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Filter users based on search term and exclude the signed-in user
+    const filtered = searchResults.filter((user: UserInterface) => 
+      (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      user.id !== dbUserId // Exclude the logged-in user
+    );
+
+    setSearchResults(filtered);
   };
+// Follow user
+const handleFollow = async (userId: number) => {
+  if (dbUserId === null || userId === null) {
+    console.error('User ID or follower ID is null');
+    return; // Prevent proceeding if IDs are not set
+  }
 
-  // Follow user
-  const handleFollow = async (userId: number) => {
-    try {
-      console.log(userId);
-      console.log(user?.id);
-      const response = await fetch('/api/following/${user?.id}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          follower_id: user?.id,
-        }),
-      });
+  try {
+    const response = await fetch(`/api/follower`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: dbUserId, // The ID of the user to follow
+        followerId: userId, // The ID of the logged-in user
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to follow user');
-      }
-
-      setFollowing([...following, userId.toString()]);
-    } catch (error) {
-      console.error('Error following user:', error);
+    if (!response.ok) {
+      throw new Error('Failed to follow user');
     }
-  };
+
+    setFollowing([...following, userId.toString()]);
+  } catch (error) {
+    console.error('Error following user:', error);
+  }
+};
 
   // Unfollow user
   const handleUnfollow = async (userId: string) => {
     try {
-      const response = await fetch('/api/follwers', {
+      const response = await fetch('/api/followers', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -93,8 +115,6 @@ export default function SocialPage() {
           follower_id: user?.id,
         }),
       });
-      console.log(userId);
-      console.log(user?.id);
 
       if (!response.ok) {
         throw new Error('Failed to unfollow user');

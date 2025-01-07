@@ -3,7 +3,8 @@ import pool from '@/db';
 
 // GET request to count followers for a specific user
 export const GET = async (req: NextRequest, context:any) => {
-  const userId = context.params.userId; // Get the user ID from the URL parameters
+  const { id } = await context.params; // Await the context.params before accessing the id
+  const userId = id; // Get the user ID from the URL parameters
   try {
     const client = await pool.connect();
     try {
@@ -27,10 +28,14 @@ export const GET = async (req: NextRequest, context:any) => {
     return NextResponse.json({ message: "Error fetching follower count" }, { status: 500 });
   }
 };
-
-// POST request to add a new follower
 export const POST = async (req: NextRequest) => {
   const { userId, followerId } = await req.json(); // Expecting JSON body with userId and followerId
+
+  if (!userId || !followerId) {
+    console.error('Missing userId or followerId');
+    return NextResponse.json({ message: "User ID or follower ID is missing" }, { status: 400 });
+  }
+
   try {
     const client = await pool.connect();
     try {
