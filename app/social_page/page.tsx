@@ -59,7 +59,7 @@ export default function SocialPage() {
     try {
       console.log(userId);
       console.log(user?.id);
-      const response = await fetch('/api/follwers', {
+      const response = await fetch('/api/following/${user?.id}', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

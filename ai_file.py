@@ -38,7 +38,7 @@ async def get_flight_recommendations(user_id: int):
     # If user has no bookings, return popular flights
     if not user_bookings:
         popular_flights = await conn.fetch("""
-            SELECT DISTINCT 
+            SELECT DISTINCT
                 f.id,
                 f.destination,
                 f.depart,
