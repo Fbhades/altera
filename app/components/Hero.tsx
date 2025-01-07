@@ -19,7 +19,7 @@ const Hero = () => {
       try {
         // Assuming you have the user ID from authentication
         const userId = 1; // Replace with actual user ID from auth
-        const response = await fetch(`/api/recommendations/${userId}`);
+        const response = await fetch(`http://localhost:8000/api/recommendations/${userId}`);
         if (!response.ok) throw new Error('Failed to fetch recommendations');
         const data = await response.json();
         setRecommendations(data);
@@ -30,8 +30,6 @@ const Hero = () => {
 
     fetchRecommendations();
   }, []);
-
-  console.log(recommendations);
 
   useEffect(() => {
     const fetchData = async () => {
