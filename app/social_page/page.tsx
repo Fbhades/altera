@@ -81,7 +81,7 @@ const handleFollow = async (userId: number) => {
   }
 
   try {
-    const response = await fetch(`/api/follower`, {
+    const response = await fetch(`/api/followers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
