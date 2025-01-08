@@ -6,6 +6,7 @@ import { Flight_details_business, Flight_details_economy } from "@/app/Interface
 import { useUser } from "@clerk/nextjs";
 
 export default function Home() {
+  const contry = "NYC";
   const router = useRouter();
   const { isLoaded, isSignedIn, user } = useUser();
   const { id } = useParams();
@@ -13,6 +14,24 @@ export default function Home() {
   const [flightClass, setFlightClass] = useState('economy'); // State to track selected class
   const [selectedMeal, setSelectedMeal] = useState<number | null>(null); // State to track selected meal
   const email = user?.emailAddresses[0].toString();
+  const [hotels, setHotels] = useState([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const fetchHotels = async () => {
+    try {
+      const response = await fetch(`/api/searchHotels/${contry}`);
+      const data = await response.json();
+      setHotels(data.hotels || []);
+      setIsDialogOpen(true); // Open dialog after fetching hotels
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+    }
+  };
+
+  const handleHotelSelect = (hotel: any) => {
+    setIsDialogOpen(false); // Close dialog
+  };
+  
 
   useEffect(() => {
     if (id) {
@@ -210,11 +229,49 @@ export default function Home() {
             </div>
           </div>
           </div>
+          
           {/* Total Cost */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4 text-gray-700">Total Cost: ${totalCost.toFixed(2)}</h3>
           </div>
+          <div className="mb-8">
+            <button 
+              onClick={fetchHotels} 
+              className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+            >
+              Search Hotels
+            </button>
+          </div>
 
+          {/* Hotel Selection Dialog */}
+{isDialogOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+      <h3 className="text-2xl font-bold mb-4">Select a Hotel</h3>
+      <ul className="max-h-64 overflow-y-auto">
+        {hotels.map((hotel: any) => (
+          <li key={hotel.hotelId} className="flex justify-between items-center p-4 border-b hover:bg-gray-100 cursor-pointer">
+            <div onClick={() => handleHotelSelect(hotel)}>
+              <p className="font-semibold">{hotel.name}</p>
+              <p className="text-sm text-gray-600">{hotel.address.countryCode}</p>
+            </div>
+            <button 
+              onClick={() => (() => totalCost + 200)} 
+              className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600"
+            >
+             choose
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button onClick={() => setIsDialogOpen(false)} className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
+          
           {/* Booking Button */}
           <div className="text-center">
             <button onClick={handleBooking} className="bg-yellow-400 text-gray-900 py-3 px-6 rounded-lg font-semibold hover:bg-yellow-500 transition">

@@ -14,6 +14,7 @@ export const GET = async (req: NextRequest, context: any) => {
           f.Depart,
           f.Airline,
           f.Date,
+          f.country_code,
           bf.Available_Seats AS business_available_seats,
           bf.Flight_Price AS business_price,
           bf.Baggage_Allowance AS business_baggage_allowance,

@@ -41,6 +41,7 @@ export interface searchFlight {
     economy_baggage_capacity: number;
     economy_extra_baggage_cost: string;
     meals: Meal[];
+    country_code : string;
   }
 
   export interface Flight_details_business {
@@ -54,6 +55,8 @@ export interface searchFlight {
     business_baggage_allowance: number;
     business_lounge_access: boolean;
     meals: Meal[];
+    country_code : string;
+
   }
 
 export interface EconomyFlight {
