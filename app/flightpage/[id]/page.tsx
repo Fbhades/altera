@@ -6,7 +6,7 @@ import { Flight_details_business, Flight_details_economy } from "@/app/Interface
 import { useUser } from "@clerk/nextjs";
 
 export default function Home() {
-  const contry = "NYC";
+  const [contry,setContry] = useState("NYC");
   const router = useRouter();
   const { isLoaded, isSignedIn, user } = useUser();
   const { id } = useParams();
@@ -46,6 +46,7 @@ export default function Home() {
             headers: { 'Content-Type': 'application/json' },
           });
           const data = await response.json();
+          setContry( data.country_code);
           setFlightDetails(data);
         } catch (error) {
           console.error('Error fetching flight details:', error);
