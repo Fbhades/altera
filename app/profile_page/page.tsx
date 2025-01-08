@@ -104,8 +104,8 @@ export default function ProfilePage() {
   
         const followersNamesResponse = await fetch(`/api/getfollowing/${userId}`);
       if (followersNamesResponse.ok) {
-        const followingNamesData = await followersNamesResponse.json();
-        setFollowingNames(followingNamesData.followers);  // Assuming names are returned in this format
+        const followersNamesData = await followersNamesResponse.json();
+        setFollowersNames(followersNamesData.followers);  // Assuming names are returned in this format
       }
         // Fetch names of the users you're following
         const followingNamesResponse = await fetch(`/api/getfollowers/${userId}`);
@@ -137,39 +137,67 @@ export default function ProfilePage() {
 
   const handleUpvote = async (postId: number) => {
     try {
+      // Don't allow upvoting if user has already upvoted
+      const post = userPosts.find(p => p.id === postId);
+      if (post?.has_upvoted) {
+        return;
+      }
+  
       const primaryEmail = user?.primaryEmailAddress?.emailAddress;
       if (!primaryEmail) return;
-
+  
       const userResponse = await fetch(
         `/api/auth/${encodeURIComponent(primaryEmail)}`
       );
       if (!userResponse.ok) throw new Error("Failed to get user data");
       const userData = await userResponse.json();
+  
+      console.log({
+        postid: postId,
+        upvote: true,
+        downvote: false,
+      });
 
-      const response = await fetch(`/api/postUser/${postId}`, {
+      const response = await fetch(`/api/postUser/${userData.userid}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postid: postId,
-          userid: userData.userid,
           upvote: true,
           downvote: false,
         }),
       });
 
+      const reader = response.body?.getReader();
+      if (reader) {
+        const { done, value } = await reader.read();
+        if (!done && value) {
+          console.log(new TextDecoder().decode(value));
+        } else {
+          console.log("Response body is empty");
+        }
+      } else {
+        console.log("No response body");
+      }
+  
       if (response.ok) {
+        const data = await response.json();
         setUserPosts((posts) =>
           posts.map((post) =>
             post.id === postId
-              ? { ...post, upvotes: (post.upvotes || 0) + 1, has_upvoted: true }
+              ? { ...post, upvotes: data.upvotes, has_upvoted: true }
               : post
           )
         );
+      } else {
+        const error = await response.json();
+        console.error("Failed to upvote:", error.message);
       }
     } catch (error) {
       console.error("Error upvoting post:", error);
     }
   };
+
   const handleShowComments = async (postId: number) => {
     console.log(postId)
     setSelectedPost(postId);
@@ -330,8 +358,8 @@ export default function ProfilePage() {
 
                 </div>
                 <div className="text-center">
-                <Button onClick={() => setShowFollowingNames(true)} className="bg-blue-600 text-white hover:bg-blue-700">
-  Following: {followingCount}
+                <Button onClick={() => setShowFollowerNames(true)} className="bg-blue-600 text-white hover:bg-blue-700">
+          Followers: {followerCount}
 </Button>
 
 <Dialog open={showFollowingNames} onOpenChange={setShowFollowingNames}>

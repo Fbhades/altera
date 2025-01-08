@@ -1,17 +1,20 @@
 import { NextResponse, NextRequest } from 'next/server';
 import pool from '@/db';
+import { console } from 'inspector';
 
 // GET: Fetch a specific record by ID
 export const GET = async (req:NextRequest, context:any) => {
   try {
     const { id } = context.params;
 
+    console.log('GET id:', id);
+
     if (!id) {
       return NextResponse.json({ message: 'Missing ID in request' }, { status: 400 });
     }
 
     const client = await pool.connect();
-    const query = 'SELECT * FROM post_user WHERE id = $1;';
+    const query = 'SELECT * FROM post_user WHERE userid = $1;';
     const result = await client.query(query, [id]);
     client.release();
 
@@ -29,28 +32,60 @@ export const GET = async (req:NextRequest, context:any) => {
 // POST: Create a new post_user record by user ID
 export const POST = async (req:NextRequest, context:any) => {
   try {
-    const { id: userId } = context.params; // Assuming 'id' in the route is the user ID
+    const { userId } = context.params;
     const body = await req.json();
     const { postid, upvote, downvote } = body;
-
-    if (!userId || !postid || upvote === undefined || downvote === undefined) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-    }
+    console.log(userId, body);
 
     const client = await pool.connect();
-    const query = `
-      INSERT INTO post_user (postid, userid, upvote, downvote)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *;
-    `;
-    const values = [postid, userId, upvote, downvote];
-    const result = await client.query(query, values);
-    client.release();
+    try {
+      // Check if user has already upvoted this post
+      const checkQuery = `
+        SELECT * FROM post_user 
+        WHERE postid = $1 AND userid = $2;
+      `;
+      const checkResult = await client.query(checkQuery, [postid, userId]);
+      
+      if (checkResult.rowCount && checkResult.rowCount > 0) {
+        return NextResponse.json(
+          { message: 'User has already voted on this post' },
+          { status: 400 }
+        );
+      }
 
-    return NextResponse.json(result.rows[0], { status: 201 });
-  } catch (error) {
-    console.error('Error creating post_user record:', error);
-    return NextResponse.json({ message: 'Error creating post_user record' }, { status: 500 });
+      // If no existing vote, insert new record
+      const query = `
+        INSERT INTO post_user (postid, userid, upvote, downvote)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *;
+      `;
+      const values = [postid, userId, upvote, downvote];
+      const result = await client.query(query, values);
+
+      // Update post upvote count
+      const updatePostQuery = `
+        UPDATE posts 
+        SET upvotes = (
+          SELECT COUNT(*)
+          FROM post_user 
+          WHERE postid = $1 AND upvote = true
+        )
+        WHERE postid = $1
+        RETURNING upvotes;
+      `;
+      console.log(postid);
+      const updateResult = await client.query(updatePostQuery, [postid]);
+      
+      return NextResponse.json({
+        ...result.rows[0],
+        upvotes: updateResult.rows[0].upvotes
+      }, { status: 201 });
+    } finally {
+      client.release();
+    }
+  }
+  catch (error) {
+    return error;
   }
 };
 
@@ -60,6 +95,7 @@ export const PUT = async (req:NextRequest, context:any) => {
     const { id } = context.params; // Assuming 'id' is the record ID
     const body = await req.json();
     const { postid, userid, upvote, downvote } = body;
+    console.log('PUT body:', body);
 
     if (!id || !postid || !userid || upvote === undefined || downvote === undefined) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
@@ -69,10 +105,11 @@ export const PUT = async (req:NextRequest, context:any) => {
     const query = `
       UPDATE post_user
       SET postid = $1, userid = $2, upvote = $3, downvote = $4
-      WHERE id = $5
+      WHERE userid = $5
       RETURNING *;
     `;
-    const values = [postid, userid, upvote, downvote, id];
+    const values = [postid, userid, upvote, downvote];
+    console.log('PUT values:', values);
     const result = await client.query(query, values);
     client.release();
 
