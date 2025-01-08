@@ -65,6 +65,10 @@ async def get_flight_recommendations(user_id: int) -> List[Dict]:
             WHERE f.date < CURRENT_DATE
         """)
         
+        for f in all_flights:
+            print(f"{f['id']} - {f['price']} - {type(f['price'])}")
+  # Confirm it shows <class 'decimal.Decimal'>
+
         # Create feature matrices
         user_features = np.array([
             [hash(r['destination']), hash(r['airline']), float(r['price'])]
