@@ -5,7 +5,12 @@ import React from 'react';
 import DestinationCard from './DestinationCard';
 
 const PopularDestinations = () => {
-  const [destinations, setDestinations] = useState([]);
+  interface Destination {
+    destination: string;
+    date: string;
+  }
+
+  const [destinations, setDestinations] = useState<Destination[]>([]);
 
   useEffect(() => {
     const fetchDestinations = async () => {
