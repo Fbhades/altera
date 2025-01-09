@@ -110,7 +110,7 @@ export default function ProfilePage() {
   const fetchReservationHistory = async (userId: string) => {
     try {
       const reservationsResponse = await fetch(
-        `/api/admin/resevation?userid=${userId}`
+        `/api/admin/resevation/${id}`
       );
       if (reservationsResponse.ok) {
         const reservationsData = await reservationsResponse.json();
