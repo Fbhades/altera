@@ -126,6 +126,7 @@ export default function ProfilePage() {
 
   const fetchUserPosts = async (userId: string) => {
     try {
+      console.log(userId)
       const response = await fetch(`/api/post?userid=${userId}`);
       if (!response.ok) throw new Error("Failed to fetch posts");
       const postsData = await response.json();

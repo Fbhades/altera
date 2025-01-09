@@ -16,6 +16,7 @@ export default function Home() {
   const email = user?.emailAddresses[0].toString();
   const [hotels, setHotels] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [hotelCost, setHotelCost] = useState(0);
 
   const fetchHotels = async () => {
     try {
@@ -29,6 +30,7 @@ export default function Home() {
   };
 
   const handleHotelSelect = (hotel: any) => {
+    setHotelCost(200);
     setIsDialogOpen(false); // Close dialog
   };
   
@@ -73,7 +75,7 @@ export default function Home() {
   const mealCost = selectedMealData ? parseFloat(selectedMealData.cost) : 0;
 
   // Calculate total cost
-  const totalCost = basePrice + mealCost;
+  const totalCost = basePrice + mealCost + hotelCost;
 
   const handleBooking = async () => {
     try {
@@ -257,7 +259,7 @@ export default function Home() {
               <p className="text-sm text-gray-600">{hotel.address.countryCode}</p>
             </div>
             <button 
-              onClick={() => (() => totalCost + 200)} 
+              onClick={() => handleHotelSelect(hotel)} 
               className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600"
             >
              choose
