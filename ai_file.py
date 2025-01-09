@@ -52,7 +52,7 @@ async def get_flight_recommendations(user_id: int) -> List[Dict]:
             
         # Get available flights with prices
         all_flights = await conn.fetch("""
-            SELECT 
+            SELECT DISTINCT
                 f.id,
                 f.destination,
                 f.airline,
@@ -62,8 +62,11 @@ async def get_flight_recommendations(user_id: int) -> List[Dict]:
             FROM flight f
             LEFT JOIN economyflight ef ON f.id = ef.flight_id
             LEFT JOIN businessflight bf ON f.id = bf.flight_id
-            WHERE f.date < CURRENT_DATE
+            WHERE f.date > CURRENT_DATE
+            AND COALESCE(ef.flight_price, bf.flight_price) IS NOT NULL;
         """)
+
+        print(all_flights)
         
         for f in all_flights:
             print(f"{f['id']} - {f['price']} - {type(f['price'])}")
@@ -137,7 +140,7 @@ async def get_recommendations(user_id: int):
                 "destination": rec["destination"],
                 "airline": rec["airline"],
                 "date": rec["date"],
-                "flight_price": rec["id"]  # Add mock price or real price if available
+                "flight_price": rec["id"]
             }
             for rec in recommendations
         ]

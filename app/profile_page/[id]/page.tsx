@@ -265,7 +265,7 @@ export default function ProfilePage() {
     if (!selectedPost || !comment.trim()) return;
 
     try {
-      const primaryEmail = user?.primaryEmailAddress?.emailAddress;
+      const primaryEmail = currentUser?.email;
       if (!primaryEmail) return;
 
       const userResponse = await fetch(
@@ -279,7 +279,7 @@ export default function ProfilePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postid: selectedPost,
-          user_id: currentUser?.userID,
+          user_id: id,
         comment_content: comment.trim(),
         }),
       });

@@ -99,7 +99,6 @@ const Hero = () => {
                   <p className="mt-2 line-clamp-3 text-sm/relaxed text-gray-500">
                     Destination: {flight.destination}<br />
                     Date: {flight.date}<br />
-                    Price: {flight.flight_price}$
                   </p>
                   <span className="group mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600">
                     <button onClick={() => router.push('/flightpage/' + flight.flight_id)}>

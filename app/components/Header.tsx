@@ -68,6 +68,9 @@ const Header = () => {
                   <Button asChild variant="outline" size="sm">
                     <Link href="/profile_page">Profile</Link>
                   </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/social_page">Social Page</Link>
+                  </Button>
                 <UserButton afterSignOutUrl="/" />
               </li>
             ) : (
